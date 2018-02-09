@@ -41,7 +41,7 @@ bool drvButtonInit(void)
   uint32_t i;
   GPIO_InitTypeDef  GPIO_InitStruct;
   GPIO_InitStruct.Mode  = GPIO_MODE_INPUT;
-  GPIO_InitStruct.Pull  = GPIO_PULLUP;
+  GPIO_InitStruct.Pull  = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
 
   for(i = 0; i < DRV_BUTTON_MAX_CH; i++)
@@ -57,7 +57,7 @@ uint8_t drvButtonGetState(uint8_t ch)
 {
   uint8_t ret = 0;
 
-  if(HAL_GPIO_ReadPin(drv_button[ch].port, drv_button[ch].pin) == GPIO_PIN_RESET)
+  if(HAL_GPIO_ReadPin(drv_button[ch].port, drv_button[ch].pin) == GPIO_PIN_SET)
   {
     ret = 1;
   }

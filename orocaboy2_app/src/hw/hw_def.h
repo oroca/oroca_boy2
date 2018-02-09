@@ -55,10 +55,15 @@
 #define _HW_DEF_CMDIF_LIST_MAX  16
 
 
+#define _USE_HW_CMDIF_LED
+#define _USE_HW_CMDIF_BUTTON
+
+
+
 #define _HW_DEF_LED_CH_MAX                5
 #define _HW_DEF_BUTTON_CH_MAX             1
 #define _HW_DEF_UART_CH_MAX               2
-#define _HW_DEF_TIMER_CH_MAX              2
+#define _HW_DEF_TIMER_CH_MAX              3
 #define _HW_DEF_SW_TIMER_MAX              8
 #define _HW_DEF_ADC_CH_MAX                4
 #define _HW_DEF_I2C_CH_MAX                1
@@ -69,7 +74,7 @@
 #define _HW_DEF_FLASH_ADDR_APP_START          0x08020000
 #define _HW_DEF_FLASH_ADDR_APP_END            (_HW_DEF_FLASH_ADDR_APP_START + _HW_DEF_FLASH_ADDR_APP_LENGTH)
 
-#define _HW_DEF_CMD_MAX_DATA_LENGTH           2048
+#define _HW_DEF_CMD_MAX_DATA_LENGTH           1024
 
 
 

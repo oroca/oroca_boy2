@@ -35,9 +35,11 @@ uint32_t microsGetMicros(void);
 
 void hwInit(void)
 {
+  cmdifInit();
   qbufferInit();
   swtimerInit();
   timerInit();
+  microsInit();
 
   ledInit();
   buttonInit();

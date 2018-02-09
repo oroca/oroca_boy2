@@ -26,7 +26,7 @@
 #include "uart.h"
 #include "flash.h"
 #include "reset.h"
-
+#include "cmdif/cmdif.h"
 
 
 

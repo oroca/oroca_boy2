@@ -37,6 +37,25 @@ void rtosInit(void)
 }
 
 
+void vApplicationStackOverflowHook( TaskHandle_t pxTask, char *pcTaskName )
+{
+  ( void ) pcTaskName;
+  ( void ) pxTask;
+
+
+  cmdifPrintf("stack over : %s\n", pcTaskName);
+  for( ;; )
+  {
+    ledOn(0);
+    ledOff(1);
+    delay(100);
+    ledOn(1);
+    ledOff(0);
+    delay(100);
+  }
+}
+
+
 /**
   * @brief  This function configures the TIM6 as a time base source.
   *         The time source is configured  to have 1ms time base with a dedicated
