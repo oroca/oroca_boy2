@@ -8,7 +8,7 @@
 #include "drv_reset.h"
 
 #include "hw.h"
-
+#include "wdg.h"
 
 
 //-- Internal Variables
