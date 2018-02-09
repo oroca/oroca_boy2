@@ -189,7 +189,14 @@ int download(int argc, char *argv[])
 
     if (errcode == OK)
     {
-      printf("  erase fw ret \t: OK (%d ms), retry %d\n", millis()-time_pre, i-1);
+      if (i > 0)
+      {
+        printf("  erase fw ret \t: OK (%d ms), retry %d\n", millis()-time_pre, i-1);
+      }
+      else
+      {
+        printf("  erase fw ret \t: OK (%d ms)\n", millis()-time_pre);
+      }
     }
     else
     {
@@ -247,6 +254,7 @@ int download(int argc, char *argv[])
       }
       if( errcode != OK )
       {
+        printf("  flash fw fail addr cnt : %d (%d) \n", addr_cnt, (int)readbytes);
         break;
       }
 

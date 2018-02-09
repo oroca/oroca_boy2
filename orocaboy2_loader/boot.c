@@ -143,7 +143,7 @@ err_code_t bootCmdAddTagToBIN(uint32_t fw_addr, char *src_filename, char *dst_fi
   fclose(p_fd);
   free(buf);
 
-  printf("  created file  : %s (%d KB)\n", dst_filename, (_DEF_TAG_SIZE + src_len)/1024 );
+  printf("  created file  : %s (%d KB)\n", dst_filename, (int)((_DEF_TAG_SIZE + src_len)/1024) );
   printf("  tag fw_addr   : 0x%08X \n", file_tag.fw_addr);
   printf("  tag length    : %d KB (0x%X)\n", file_tag.length/1024, file_tag.length);
   printf("  tag crc       : 0x%04X \n", file_tag.crc);

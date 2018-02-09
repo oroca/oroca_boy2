@@ -349,7 +349,6 @@ err_code_t cmdSendCmdRxResp(cmd_t *p_cmd, uint8_t cmd, uint8_t *p_data, uint32_t
   cmdSendCmd(p_cmd, cmd, p_data, length);
 
   time_pre = millis();
-
   while(1)
   {
     if (cmdReceivePacket(p_cmd) == true)
@@ -364,7 +363,6 @@ err_code_t cmdSendCmdRxResp(cmd_t *p_cmd, uint8_t cmd, uint8_t *p_data, uint32_t
       break;
     }
   }
-
 
   return errcode;
 }

@@ -19,7 +19,7 @@ extern "C" {
 
 
 
-#define CMD_MAX_DATA_LENGTH			  2048
+#define CMD_MAX_DATA_LENGTH			  1024
 
 
 
