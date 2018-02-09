@@ -66,9 +66,6 @@ bool drvLedInit(void)
   drv_led_tbl[3].gpio.port = GPIOK;
   drv_led_tbl[3].gpio.pin  = GPIO_PIN_3;    // LED4
 
-  drv_led_tbl[3].gpio.port = GPIOD;
-  drv_led_tbl[3].gpio.pin  = GPIO_PIN_3;    // LED7
-
 
   for (i=0; i<DRV_LED_MAX_CH; i++)
   {

@@ -21,7 +21,7 @@ static bool IsInit = false;
 
 
 /* Variables' number */
-#define NB_OF_VAR             ((uint8_t)2048)
+#define NB_OF_VAR             ((uint32_t)2048)
 
 /* Exported types ------------------------------------------------------------*/
 /* Exported macro ------------------------------------------------------------*/
@@ -120,6 +120,8 @@ uint8_t drvEepromReadByte(uint32_t addr)
 
   if( IsInit == false ) return 0;
 
+  HAL_FLASH_Unlock();
+
   EE_ReadVariable((uint16_t)addr,  &read_value);
 
   return (uint8_t)read_value;
@@ -129,6 +131,8 @@ uint8_t drvEepromReadByte(uint32_t addr)
 bool drvEepromWriteByte(uint32_t index, uint8_t data_in)
 {
   if( IsInit == false ) return false;
+
+  HAL_FLASH_Unlock();
 
   if (EE_WriteVariable(index, (uint16_t)data_in) == EE_OK)
   {
@@ -151,6 +155,8 @@ uint32_t drvEepromGetLength(void)
 
 bool drvEepromFormat(void)
 {
+  HAL_FLASH_Unlock();
+
   if (EE_Format() == HAL_OK)
   {
     return true;

@@ -46,8 +46,8 @@
 #define _USE_HW_RESET
 #define _USE_HW_TIMER
 #define _USE_HW_SW_TIMER
-#define _USE_HW_I2C
-#define _USE_HW_ADC
+//#define _USE_HW_I2C
+//#define _USE_HW_ADC
 #define _USE_HW_GPIO
 #define _USE_HW_CMDIF
 
@@ -57,10 +57,11 @@
 
 #define _USE_HW_CMDIF_LED
 #define _USE_HW_CMDIF_BUTTON
+#define _USE_HW_CMDIF_EEPROM
+#define _USE_HW_CMDIF_FLASH
 
 
-
-#define _HW_DEF_LED_CH_MAX                5
+#define _HW_DEF_LED_CH_MAX                4
 #define _HW_DEF_BUTTON_CH_MAX             1
 #define _HW_DEF_UART_CH_MAX               2
 #define _HW_DEF_TIMER_CH_MAX              3

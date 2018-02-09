@@ -177,7 +177,7 @@ err_code_t drvFlashErase(uint32_t addr, uint32_t length)
 
 
   target_addr_begin = addr;
-  target_addr_end   = addr + length;
+  target_addr_end   = addr + length - 1;
 
 
   for (i=0; i<flash_sector_total; i++)
@@ -193,6 +193,15 @@ err_code_t drvFlashErase(uint32_t addr, uint32_t length)
     {
       err_code = drvFlashEraseSector(i);
     }
+    else if((addr_begin >= target_addr_begin) && (addr_end <= target_addr_end) )
+    {
+      err_code = drvFlashEraseSector(i);
+    }
+    else if((addr_begin <= target_addr_begin) && (addr_end >= target_addr_end) )
+    {
+      err_code = drvFlashEraseSector(i);
+    }
+
   }
 
 
