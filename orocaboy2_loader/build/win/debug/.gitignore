@@ -1,0 +1,8 @@
+/util_win.o
+/boot.o
+/cmd.o
+/download.o
+/main.o
+/orocaboy2_loader.exe
+/uart_win.o
+/util.o
