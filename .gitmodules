@@ -1,0 +1,6 @@
+[submodule "orocaboy2_app/src/fwsdk"]
+	path = orocaboy2_app/src/fwsdk
+	url = https://github.com/oroca/oroca_boy2_fwsdk.git
+[submodule "orocaboy2_boot/src/fwsdk"]
+	path = orocaboy2_boot/src/fwsdk
+	url = https://github.com/oroca/oroca_boy2_fwsdk.git
