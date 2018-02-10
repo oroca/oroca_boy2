@@ -27,7 +27,9 @@
 #include "flash.h"
 #include "reset.h"
 #include "eeprom.h"
+#include "sdram.h"
 #include "cmdif/cmdif.h"
+
 
 
 

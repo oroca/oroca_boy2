@@ -50,6 +50,7 @@ void hwInit(void)
   flashInit();
   resetInit();
   eepromInit();
+  sdramInit();
 }
 
 void delay(uint32_t delay_ms)

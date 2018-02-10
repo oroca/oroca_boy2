@@ -228,11 +228,12 @@ uint8_t  drvAdcGetRes(uint8_t ch)
   return 12;
 }
 
-
+#if 0
 void DMA2_Stream0_IRQHandler(void)
 {
   HAL_DMA_IRQHandler(hADC1.DMA_Handle);
 }
+#endif
 
 void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* AdcHandle)
 {

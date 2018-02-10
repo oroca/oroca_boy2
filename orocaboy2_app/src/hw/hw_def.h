@@ -50,7 +50,7 @@
 //#define _USE_HW_ADC
 #define _USE_HW_GPIO
 #define _USE_HW_CMDIF
-
+#define _USE_HW_SDRAM
 
 #define _HW_DEF_CMDIF_LIST_MAX  16
 
@@ -59,6 +59,7 @@
 #define _USE_HW_CMDIF_BUTTON
 #define _USE_HW_CMDIF_EEPROM
 #define _USE_HW_CMDIF_FLASH
+#define _USE_HW_CMDIF_SDRAM
 
 
 #define _HW_DEF_LED_CH_MAX                4
