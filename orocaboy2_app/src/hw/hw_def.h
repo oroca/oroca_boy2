@@ -52,6 +52,8 @@
 #define _USE_HW_CMDIF
 #define _USE_HW_SDRAM
 #define _USE_HW_SD
+#define _USE_HW_FATFS
+
 
 #define _HW_DEF_CMDIF_LIST_MAX  16
 
@@ -62,6 +64,7 @@
 #define _USE_HW_CMDIF_FLASH
 #define _USE_HW_CMDIF_SDRAM
 #define _USE_HW_CMDIF_SD
+#define _USE_HW_CMDIF_FATFS
 
 
 #define _HW_DEF_LED_CH_MAX                4

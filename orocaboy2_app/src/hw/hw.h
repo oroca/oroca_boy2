@@ -29,6 +29,7 @@
 #include "eeprom.h"
 //#include "sdram.h"
 #include "sd.h"
+#include "fatfs/fatfs.h"
 #include "cmdif/cmdif.h"
 
 
@@ -38,6 +39,7 @@
 typedef struct
 {
   bool sdcard;
+  bool fatfs;
 } hw_init_t;
 
 typedef struct

@@ -56,6 +56,11 @@ void hwInit(void)
   eepromInit();
   //sdramInit();
   p_hw->init.sdcard = sdInit();
+  p_hw->init.fatfs = false;
+  if (p_hw->init.sdcard == true)
+  {
+    p_hw->init.fatfs = fatfsInit();
+  }
 }
 
 void delay(uint32_t delay_ms)
