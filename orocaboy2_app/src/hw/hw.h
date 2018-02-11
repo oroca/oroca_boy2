@@ -29,9 +29,27 @@
 #include "eeprom.h"
 #include "sdram.h"
 #include "lcd.h"
+#include "sd.h"
+#include "fatfs/fatfs.h"
 #include "cmdif/cmdif.h"
 
 
+
+
+
+typedef struct
+{
+  bool sdcard;
+  bool fatfs;
+} hw_init_t;
+
+typedef struct
+{
+  hw_init_t init;
+} hw_t;
+
+
+extern hw_t *p_hw;
 
 
 void hwInit(void);

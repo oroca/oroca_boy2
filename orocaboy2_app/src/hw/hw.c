@@ -16,6 +16,10 @@
 //-- Internal Variables
 //
 TIM_HandleTypeDef  TimHandle2;
+hw_t hw;
+
+hw_t *p_hw = &hw;
+
 
 //-- External Variables
 //
@@ -52,6 +56,13 @@ void hwInit(void)
   eepromInit();
   sdramInit();
   lcdInit();
+
+  p_hw->init.sdcard = sdInit();
+  p_hw->init.fatfs = false;
+  if (p_hw->init.sdcard == true)
+  {
+    p_hw->init.fatfs = fatfsInit();
+  }
 }
 
 void delay(uint32_t delay_ms)
