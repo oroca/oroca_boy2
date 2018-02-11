@@ -50,7 +50,13 @@ bool sdInit(void)
 
 
 #ifdef _USE_HW_CMDIF_SD
-  sdCmdifInit();
+  static bool is_cmd_init = false;
+
+  if (is_cmd_init == false)
+  {
+    sdCmdifInit();
+    is_cmd_init = true;
+  }
 #endif
 
   return is_init;
