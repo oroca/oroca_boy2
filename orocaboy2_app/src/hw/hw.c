@@ -16,6 +16,10 @@
 //-- Internal Variables
 //
 TIM_HandleTypeDef  TimHandle2;
+hw_t hw;
+
+hw_t *p_hw = &hw;
+
 
 //-- External Variables
 //
@@ -50,7 +54,8 @@ void hwInit(void)
   flashInit();
   resetInit();
   eepromInit();
-  sdramInit();
+  //sdramInit();
+  p_hw->init.sdcard = sdInit();
 }
 
 void delay(uint32_t delay_ms)

@@ -27,10 +27,26 @@
 #include "flash.h"
 #include "reset.h"
 #include "eeprom.h"
-#include "sdram.h"
+//#include "sdram.h"
+#include "sd.h"
 #include "cmdif/cmdif.h"
 
 
+
+
+
+typedef struct
+{
+  bool sdcard;
+} hw_init_t;
+
+typedef struct
+{
+  hw_init_t init;
+} hw_t;
+
+
+extern hw_t *p_hw;
 
 
 void hwInit(void);
