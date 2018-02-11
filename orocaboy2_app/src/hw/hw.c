@@ -51,6 +51,7 @@ void hwInit(void)
   resetInit();
   eepromInit();
   sdramInit();
+  lcdInit();
 }
 
 void delay(uint32_t delay_ms)
