@@ -50,7 +50,17 @@
 #endif
 
 #include "hw.h"
-#include "lib/fonts/fonts.h"
+
+#define LCD_DSI_PIXEL_DATA_FMT_RBG888  DSI_RGB888 /*!< DSI packet pixel format chosen is RGB888 : 24 bpp */
+#define LCD_DSI_PIXEL_DATA_FMT_RBG565  DSI_RGB565 /*!< DSI packet pixel format chosen is RGB565 : 16 bpp */
+
+#define LCD_FB_START_ADDRESS              ((uint32_t) 0xC0000000)
+#define LCD_ADDRESS_LENGTH                ((uint32_t) 0x01000000)
+#define LTDC_NB_OF_LAYERS                 ((uint32_t) 2)
+#define LTDC_MAX_LAYER_NUMBER             ((uint32_t) 2)
+#define LTDC_ACTIVE_LAYER_BACKGROUND      ((uint32_t) 0)
+#define LTDC_ACTIVE_LAYER_FOREGROUND      ((uint32_t) 1)
+#define LTDC_DEFAULT_ACTIVE_LAYER         LTDC_ACTIVE_LAYER_FOREGROUND
 
 /**
   * @brief  LCD color definitions values
@@ -85,56 +95,29 @@
 #define LCD_COLOR_TRANSPARENT   ((uint32_t) 0xFF000000)
 
 
-err_code_t  drvLcdInit(uint8_t orientation);
+err_code_t drvLcdInit(uint8_t orientation);
+void       drvLcdReset(void);
+void       drvLcdInitLayer(uint16_t layer, uint32_t fb_addr);
 
-void     drvLcdReset(void);
+void       drvLcdSelectLayer(uint32_t layer_idx);
 
-uint32_t drvLcdGetXSize(void);
-uint32_t drvLcdGetYSize(void);
-void     drvLcdSetXSize(uint32_t image_width_pixels);
-void     drvLcdSetYSize(uint32_t image_height_pixels);
+uint32_t   drvLcdReadPixel(uint16_t x_pos, uint16_t y_pos);
+void       drvLcdDrawPixel(uint16_t x_pos, uint16_t y_pos, uint32_t rgb_code);
+void       drvLcdClear(uint32_t color);
 
-void     drvLcdInitLayerDefault(uint16_t layer, uint32_t fb_addr);
-void     drvLcdSetTransparency(uint32_t layer_idx, uint8_t transparency);
-void     drvLcdSetLayerAddr(uint32_t layer_idx, uint32_t addr);
-void     drvLcdSetColorKeying(uint32_t layer_idx, uint32_t rgb_value);
-void     drvLcdResetColorKeying(uint32_t layer_idx);
-void     drvLcdSetLayerWindow(uint16_t layer_idx, uint16_t x_pos, uint16_t y_pos, uint16_t width, uint16_t height);
+void       drvLcdSetLayerAddr(uint32_t layer_idx, uint32_t addr);
+void       drvLcdSetLayerWindow(uint16_t layer_idx, uint16_t x_pos, uint16_t y_pos, uint16_t width, uint16_t height);
+void       drvLcdSetLayerVisible(uint32_t layer_idx, uint8_t state);
 
-void     drvLcdSelectLayer(uint32_t layer_idx);
-void     drvLcdSetLayerVisible(uint32_t layer_idx, uint8_t state);
+void       drvLcdSetTransparency(uint32_t layer_idx, uint8_t transparency);
 
-void     drvLcdSetTextColor(uint32_t color);
-uint32_t drvLcdGetTextColor(void);
-void     drvLcdSetBackColor(uint32_t color);
-uint32_t drvLcdGetBackColor(void);
-void     drvLcdSetFont(uint8_t font_type);
-sFONT*   drvLcdGetFont(void);
+void       drvLcdDisplayOff(void);
+void       drvLcdDisplayOn(void);
 
-uint32_t drvLcdReadPixel(uint16_t x_pos, uint16_t y_pos);
-void     drvLcdDrawPixel(uint16_t x_pos, uint16_t y_pos, uint32_t rgb_code);
-void     drvLcdClear(uint32_t color);
-void     drvLcdClearStringLine(uint32_t line);
-void     drvLcdDisplayStringAtLine(uint16_t line, uint8_t *ptr);
-void     drvLcdDisplayStringAt(uint16_t x_pos, uint16_t y_pos, uint8_t *p_text, uint8_t align);
-void     drvLcdDisplayChar(uint16_t x_pos, uint16_t y_pos, uint8_t ascii);
-
-void     drvLcdDrawHLine(uint16_t x_pos, uint16_t y_pos, uint16_t length);
-void     drvLcdDrawVLine(uint16_t x_pos, uint16_t y_pos, uint16_t length);
-void     drvLcdDrawLine(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2);
-void     drvLcdDrawRect(uint16_t x_pos, uint16_t y_pos, uint16_t width, uint16_t height);
-void     drvLcdDrawCircle(uint16_t x_pos, uint16_t y_pos, uint16_t radius);
-void     drvLcdDrawPolygon(p_pixel points, uint16_t point_cnt);
-void     drvLcdDrawEllipse(int32_t x_pos, int32_t y_pos, int32_t x_rad, int32_t y_rad);
-void     drvLcdDrawBitmap(uint32_t x_pos, uint32_t y_pos, uint8_t *pbmp);
-
-void     drvLcdFillRect(uint16_t x_pos, uint16_t y_pos, uint16_t width, uint16_t height);
-void     drvLcdFillCircle(uint16_t x_pos, uint16_t y_pos, uint16_t radius);
-void     drvLcdFillPolygon(p_pixel points, uint16_t point_cnt);
-void     drvLcdFillEllipse(int32_t x_pos, int32_t y_pos, int32_t x_rad, int32_t y_rad);
-
-void     drvLcdDisplayOff(void);
-void     drvLcdDisplayOn(void);
+uint32_t   drvLcdGetXSize(void);
+uint32_t   drvLcdGetYSize(void);
+void       drvLcdSetXSize(uint32_t image_width_pixels);
+void       drvLcdSetYSize(uint32_t image_height_pixels);
 
 
 #ifdef __cplusplus
