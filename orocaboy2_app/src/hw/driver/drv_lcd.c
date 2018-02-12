@@ -188,7 +188,7 @@ err_code_t drvLcdInit(uint8_t orientation)
 
 
   hdis_video_conf.VirtualChannelID = LCD_OTM8009A_ID;
-  hdis_video_conf.ColorCoding = LCD_DSI_PIXEL_DATA_FMT_RBG888;
+  hdis_video_conf.ColorCoding = LCD_DSI_PIXEL_DATA_FMT_RBG565;
   hdis_video_conf.VSPolarity = DSI_VSYNC_ACTIVE_HIGH;
   hdis_video_conf.HSPolarity = DSI_HSYNC_ACTIVE_HIGH;
   hdis_video_conf.DEPolarity = DSI_DATA_ENABLE_ACTIVE_HIGH;
@@ -305,7 +305,7 @@ err_code_t drvLcdInit(uint8_t orientation)
   /* Initialize the OTM8009A LCD Display IC Driver (KoD LCD IC Driver)
   *  depending on configuration set in 'hdis_video_conf'.
   */
-  OTM8009A_Init(OTM8009A_FORMAT_RGB888, otm8009a_lcd_orient);
+  OTM8009A_Init(OTM8009A_FORMAT_RBG565, otm8009a_lcd_orient);
 
 /***********************End OTM8009A Initialization****************************/
 
@@ -321,7 +321,7 @@ err_code_t drvLcdInit(uint8_t orientation)
 void drvLcdDrawPixel(uint16_t x_pos, uint16_t y_pos, uint32_t rgb_code)
 {
   /* Write data value to all SDRAM memory */
-  *(__IO uint32_t*) (hltdc.LayerCfg[active_layer_idx].FBStartAdress + (4*(y_pos*drvLcdGetXSize() + x_pos))) = rgb_code;
+  *(__IO uint32_t*) (hltdc.LayerCfg[active_layer_idx].FBStartAdress + (2*(y_pos*drvLcdGetXSize() + x_pos))) = rgb_code;
 }
 
 
@@ -550,7 +550,7 @@ void drvLcdInitLayer(uint16_t layer_idx, uint32_t fb_addr)
   Layercfg.WindowX1 = drvLcdGetXSize();
   Layercfg.WindowY0 = 0;
   Layercfg.WindowY1 = drvLcdGetYSize();
-  Layercfg.PixelFormat = LTDC_PIXEL_FORMAT_ARGB8888;
+  Layercfg.PixelFormat = LTDC_PIXEL_FORMAT_RGB565;
   Layercfg.FBStartAdress = fb_addr;
   Layercfg.Alpha = 255;
   Layercfg.Alpha0 = 0;
@@ -687,7 +687,9 @@ static void fillBuffer(uint32_t layer_idx, void *pDst, uint32_t x_size, uint32_t
 {
   /* Register to memory mode with ARGB8888 as color align */
   hdma2d.Init.Mode         = DMA2D_R2M;
-  hdma2d.Init.ColorMode    = DMA2D_ARGB8888;
+  //hdma2d.Init.ColorMode    = DMA2D_ARGB8888;
+  hdma2d.Init.ColorMode    = DMA2D_RGB565;
+
   hdma2d.Init.OutputOffset = line_offset;
 
   hdma2d.Instance = DMA2D;
@@ -701,6 +703,103 @@ static void fillBuffer(uint32_t layer_idx, void *pDst, uint32_t x_size, uint32_t
       {
         /* Polling For DMA transfer */
         HAL_DMA2D_PollForTransfer(&hdma2d, 10);
+      }
+    }
+  }
+}
+
+void DMA2D_CopyBuffer(uint32_t LayerIndex, void * pSrc, void * pDst, uint32_t xSize, uint32_t ySize, uint32_t OffLineSrc, uint32_t OffLineDst)
+{
+  uint32_t PixelFormat;
+
+  PixelFormat = LTDC_PIXEL_FORMAT_RGB888;
+  DMA2D->CR      = 0x00000000UL | (1 << 9);
+
+  /* Set up pointers */
+  DMA2D->FGMAR   = (uint32_t)pSrc;
+  DMA2D->OMAR    = (uint32_t)pDst;
+  DMA2D->FGOR    = OffLineSrc;
+  DMA2D->OOR     = OffLineDst;
+
+  /* Set up pixel format */
+  DMA2D->FGPFCCR = PixelFormat;
+
+  /*  Set up size */
+  DMA2D->NLR     = (uint32_t)(xSize << 16) | (uint32_t)ySize;
+
+  DMA2D->CR     |= DMA2D_CR_START;
+
+  /* Wait until transfer is done */
+  while (DMA2D->CR & DMA2D_CR_START)
+  {
+  }
+}
+
+void drvLcdCopyPicture(uint32_t *pSrc, uint32_t *pDst)
+{
+  uint32_t destination = (uint32_t)pDst;
+  uint32_t source      = (uint32_t)pSrc;
+
+/*##-1- Configure the DMA2D Mode, Color Mode and output offset #############*/
+  hdma2d.Init.Mode         = DMA2D_M2M;
+  hdma2d.Init.ColorMode    = DMA2D_ARGB8888;
+  hdma2d.Init.OutputOffset = 0;
+
+  /*##-2- DMA2D Callbacks Configuration ######################################*/
+  hdma2d.XferCpltCallback  = NULL;
+
+  /*##-3- Foreground Configuration ###########################################*/
+  hdma2d.LayerCfg[1].AlphaMode = DMA2D_NO_MODIF_ALPHA;
+  hdma2d.LayerCfg[1].InputAlpha = 0xFF;
+  hdma2d.LayerCfg[1].InputColorMode = DMA2D_INPUT_ARGB8888;
+  hdma2d.LayerCfg[1].InputOffset = 0;
+
+  hdma2d.Instance  = DMA2D;
+
+  /* DMA2D Initialization */
+  if(HAL_DMA2D_Init(&hdma2d) == HAL_OK)
+  {
+    if(HAL_DMA2D_ConfigLayer(&hdma2d, 1) == HAL_OK)
+    {
+      if (HAL_DMA2D_Start(&hdma2d, source, destination, 480, 800) == HAL_OK)
+      {
+        /* Polling For DMA transfer */
+        HAL_DMA2D_PollForTransfer(&hdma2d, 100);
+      }
+    }
+  }
+}
+
+void drvLcdCopyLayer(uint32_t src_index, uint32_t dst_index)
+{
+  uint32_t destination = (uint32_t)hltdc.LayerCfg[dst_index].FBStartAdress;
+  uint32_t source      = (uint32_t)hltdc.LayerCfg[src_index].FBStartAdress;
+
+/*##-1- Configure the DMA2D Mode, Color Mode and output offset #############*/
+  hdma2d.Init.Mode         = DMA2D_M2M;
+  hdma2d.Init.ColorMode    = DMA2D_RGB565;
+  hdma2d.Init.OutputOffset = 0;
+
+  /*##-2- DMA2D Callbacks Configuration ######################################*/
+  hdma2d.XferCpltCallback  = NULL;
+
+  /*##-3- Foreground Configuration ###########################################*/
+  hdma2d.LayerCfg[1].AlphaMode = DMA2D_NO_MODIF_ALPHA;
+  hdma2d.LayerCfg[1].InputAlpha = 0xFF;
+  hdma2d.LayerCfg[1].InputColorMode = DMA2D_INPUT_RGB565;
+  hdma2d.LayerCfg[1].InputOffset = 0;
+
+  hdma2d.Instance  = DMA2D;
+
+  /* DMA2D Initialization */
+  if(HAL_DMA2D_Init(&hdma2d) == HAL_OK)
+  {
+    if(HAL_DMA2D_ConfigLayer(&hdma2d, 1) == HAL_OK)
+    {
+      if (HAL_DMA2D_Start(&hdma2d, source, destination, lcdGetXSize(), lcdGetYSize()) == HAL_OK)
+      {
+        /* Polling For DMA transfer */
+        HAL_DMA2D_PollForTransfer(&hdma2d, 100);
       }
     }
   }
