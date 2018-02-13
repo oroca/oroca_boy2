@@ -99,6 +99,7 @@ err_code_t drvSdramInit(void);
 err_code_t drvSdramDeinit(void);
 err_code_t drvSdramReadData(uint32_t uwStartAddress, uint32_t *pData, uint32_t uwDataSize);
 err_code_t drvSdramWriteData(uint32_t uwStartAddress, uint32_t *pData, uint32_t uwDataSize);
+err_code_t drvSdramWriteDataUntilTimeout(uint32_t uwStartAddress, uint32_t *pData, uint32_t uwDataSize, uint32_t polling_timeout);
 
 
 

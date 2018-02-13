@@ -192,8 +192,31 @@ err_code_t drvSdramWriteData(uint32_t uwStartAddress, uint32_t *pData, uint32_t 
   }
 }
 
-// TODO: create API
-#if 0
+
+
+/**
+  * @brief  Writes an mount of data to the SDRAM memory in DMA mode.
+  * @param  uwStartAddress: Write start address
+  * @param  pData: Pointer to data to be written
+  * @param  uwDataSize: Size of written data from the memory
+  * @param  polling_timeout : Timeout duration(ms) for waiting transfer complete
+  * @retval SDRAM status : OK or ERR_SDRAM.
+  */
+err_code_t drvSdramWriteDataUntilTimeout(uint32_t uwStartAddress, uint32_t *pData, uint32_t uwDataSize, uint32_t polling_timeout)
+{
+  if(HAL_SDRAM_Write_DMA(&hsdram, (uint32_t *)uwStartAddress, pData, uwDataSize) != HAL_OK)
+  {
+    return ERR_SDRAM;
+  }
+  else
+  {
+    HAL_DMA_PollForTransfer(hsdram.hdma, HAL_DMA_FULL_TRANSFER, polling_timeout);
+    return OK;
+  }
+}
+
+
+
 /**
   * @brief  Sends command to the SDRAM bank.
   * @param  SdramCmd: Pointer to SDRAM command structure
@@ -210,7 +233,6 @@ static err_code_t drvSdramSendCmd(FMC_SDRAM_CommandTypeDef *SdramCmd)
     return OK;
   }
 }
-#endif
 
 /**
   * @brief  Handles SDRAM DMA transfer interrupt request.
