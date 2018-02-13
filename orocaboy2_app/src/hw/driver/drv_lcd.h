@@ -51,17 +51,6 @@
 
 #include "hw.h"
 
-#define LCD_DSI_PIXEL_DATA_FMT_RBG888  DSI_RGB888 /*!< DSI packet pixel format chosen is RGB888 : 24 bpp */
-#define LCD_DSI_PIXEL_DATA_FMT_RBG565  DSI_RGB565 /*!< DSI packet pixel format chosen is RGB565 : 16 bpp */
-
-#define LCD_FB_START_ADDRESS              ((uint32_t) 0xC0000000)
-#define LCD_ADDRESS_LENGTH                ((uint32_t) 0x01000000)
-#define LTDC_NB_OF_LAYERS                 ((uint32_t) 2)
-#define LTDC_MAX_LAYER_NUMBER             ((uint32_t) 2)
-#define LTDC_ACTIVE_LAYER_BACKGROUND      ((uint32_t) 0)
-#define LTDC_ACTIVE_LAYER_FOREGROUND      ((uint32_t) 1)
-#define LTDC_DEFAULT_ACTIVE_LAYER         LTDC_ACTIVE_LAYER_FOREGROUND
-
 #if 0
 /**
   * @brief  LCD color definitions values
@@ -128,19 +117,19 @@
 
 err_code_t drvLcdInit(uint8_t orientation);
 void       drvLcdReset(void);
-void       drvLcdInitLayer(uint16_t layer, uint32_t fb_addr);
+err_code_t drvLcdInitLayer(uint16_t layer_idx, uint32_t fb_addr);
 
-void       drvLcdSelectLayer(uint32_t layer_idx);
+err_code_t drvLcdSelectLayer(uint32_t layer_idx);
 
 uint32_t   drvLcdReadPixel(uint16_t x_pos, uint16_t y_pos);
 void       drvLcdDrawPixel(uint16_t x_pos, uint16_t y_pos, uint32_t rgb_code);
 void       drvLcdClear(uint32_t color);
 
-void       drvLcdSetLayerAddr(uint32_t layer_idx, uint32_t addr);
-void       drvLcdSetLayerWindow(uint16_t layer_idx, uint16_t x_pos, uint16_t y_pos, uint16_t width, uint16_t height);
-void       drvLcdSetLayerVisible(uint32_t layer_idx, uint8_t state);
+err_code_t drvLcdSetLayerAddr(uint32_t layer_idx, uint32_t addr);
+err_code_t drvLcdSetLayerWindow(uint16_t layer_idx, uint16_t x_pos, uint16_t y_pos, uint16_t width, uint16_t height);
+err_code_t drvLcdSetLayerVisible(uint32_t layer_idx, uint8_t state);
 
-void       drvLcdSetTransparency(uint32_t layer_idx, uint8_t transparency);
+err_code_t drvLcdSetTransparency(uint32_t layer_idx, uint8_t transparency);
 
 void       drvLcdDisplayOff(void);
 void       drvLcdDisplayOn(void);

@@ -84,18 +84,26 @@
 #include "drv_sdram.h"
 #include "lib/otm8009a/otm8009a.h"
 
+
+#define LCD_DSI_PIXEL_DATA_FMT_RBG888  DSI_RGB888 /*!< DSI packet pixel format chosen is RGB888 : 24 bpp */
+#define LCD_DSI_PIXEL_DATA_FMT_RBG565  DSI_RGB565 /*!< DSI packet pixel format chosen is RGB565 : 16 bpp */
+
+#define LTDC_ACTIVE_LAYER_BACKGROUND      ((uint32_t) 0) //_DEF_LCD_LAYER1
+#define LTDC_ACTIVE_LAYER_FOREGROUND      ((uint32_t) 1) //_DEF_LCD_LAYER2
+#define LTDC_DEFAULT_ACTIVE_LAYER         LTDC_ACTIVE_LAYER_BACKGROUND
+
 #define LCD_OTM8009A_ID        ((uint32_t) 0)
 
 uint32_t lcd_x_size = OTM8009A_800X480_WIDTH;
 uint32_t lcd_y_size = OTM8009A_800X480_HEIGHT;
-static uint32_t  active_layer_idx = LTDC_ACTIVE_LAYER_FOREGROUND;
+static uint32_t  active_layer_idx = LTDC_ACTIVE_LAYER_BACKGROUND;
 
 DSI_HandleTypeDef hdsi;
 LTDC_HandleTypeDef  hltdc;
 DMA2D_HandleTypeDef hdma2d;
 static DSI_VidCfgTypeDef hdis_video_conf;
 
-static void fillBuffer(uint32_t layer_idx, void *pDst, uint32_t x_size, uint32_t y_size, uint32_t line_offset, uint32_t color_idx);
+static err_code_t fillBuffer(uint32_t layer_idx, void *p_dst, uint32_t x_size, uint32_t y_size, uint32_t line_offset, uint32_t color_idx);
 
 static void drvLcdMspDeinit(void);
 static void drvLcdMspInit(void);
@@ -401,9 +409,15 @@ void drvLcdReset(void)
   * @brief  Selects the LCD Layer.
   * @param  layer_idx: Layer foreground or background
   */
-void drvLcdSelectLayer(uint32_t layer_idx)
+err_code_t drvLcdSelectLayer(uint32_t layer_idx)
 {
+  if(layer_idx >= MAX_LAYER)
+  {
+    return ERR_LCD_INVAILD_LAYER;
+  }
   active_layer_idx = layer_idx;
+
+  return OK;
 }
 
 /**
@@ -414,8 +428,13 @@ void drvLcdSelectLayer(uint32_t layer_idx)
   *            @arg  ENABLE
   *            @arg  DISABLE
   */
-void drvLcdSetLayerVisible(uint32_t layer_idx, uint8_t state)
+err_code_t drvLcdSetLayerVisible(uint32_t layer_idx, uint8_t state)
 {
+  if(layer_idx >= MAX_LAYER)
+  {
+    return ERR_LCD_INVAILD_LAYER;
+  }
+
   if(state == _DEF_ENABLE)
   {
     __HAL_LTDC_LAYER_ENABLE(&(hltdc), layer_idx);
@@ -426,6 +445,7 @@ void drvLcdSetLayerVisible(uint32_t layer_idx, uint8_t state)
   }
   __HAL_LTDC_RELOAD_IMMEDIATE_CONFIG(&(hltdc));
 
+  return OK;
 }
 
 /**
@@ -434,9 +454,16 @@ void drvLcdSetLayerVisible(uint32_t layer_idx, uint8_t state)
   * @param  transparency: transparency
   *           This parameter must be a number between Min_Data = 0x00 and Max_Data = 0xFF
   */
-void drvLcdSetTransparency(uint32_t layer_idx, uint8_t transparency)
+err_code_t drvLcdSetTransparency(uint32_t layer_idx, uint8_t transparency)
 {
+  if(layer_idx >= MAX_LAYER)
+  {
+    return ERR_LCD_INVAILD_LAYER;
+  }
+
   HAL_LTDC_SetAlpha(&(hltdc), transparency, layer_idx);
+
+  return OK;
 }
 
 /**
@@ -444,9 +471,16 @@ void drvLcdSetTransparency(uint32_t layer_idx, uint8_t transparency)
   * @param  layer_idx: Layer foreground or background
   * @param  addr: New LCD frame buffer value
   */
-void drvLcdSetLayerAddr(uint32_t layer_idx, uint32_t addr)
+err_code_t drvLcdSetLayerAddr(uint32_t layer_idx, uint32_t addr)
 {
+  if(layer_idx >= MAX_LAYER)
+  {
+    return ERR_LCD_INVAILD_LAYER;
+  }
+
   HAL_LTDC_SetAddress(&(hltdc), addr, layer_idx);
+
+  return OK;
 }
 
 /**
@@ -457,14 +491,20 @@ void drvLcdSetLayerAddr(uint32_t layer_idx, uint32_t addr)
   * @param  width: LCD window width
   * @param  height: LCD window height
   */
-void drvLcdSetLayerWindow(uint16_t layer_idx, uint16_t x_pos, uint16_t y_pos, uint16_t width, uint16_t height)
+err_code_t drvLcdSetLayerWindow(uint16_t layer_idx, uint16_t x_pos, uint16_t y_pos, uint16_t width, uint16_t height)
 {
+  if(layer_idx >= MAX_LAYER)
+  {
+    return ERR_LCD_INVAILD_LAYER;
+  }
+
   /* Reconfigure the layer size */
   HAL_LTDC_SetWindowSize(&(hltdc), width, height, layer_idx);
 
   /* Reconfigure the layer position */
   HAL_LTDC_SetWindowPosition(&(hltdc), x_pos, y_pos, layer_idx);
 
+  return OK;
 }
 
 
@@ -541,9 +581,14 @@ void drvLcdSetYSize(uint32_t image_height_pixels)
   * @param  layer_idx: Layer foreground or background
   * @param  fb_addr: Layer frame buffer
   */
-void drvLcdInitLayer(uint16_t layer_idx, uint32_t fb_addr)
+err_code_t drvLcdInitLayer(uint16_t layer_idx, uint32_t fb_addr)
 {
   LTDC_LayerCfgTypeDef Layercfg;
+
+  if(layer_idx >= MAX_LAYER)
+  {
+    return ERR_LCD_INVAILD_LAYER;
+  }
 
   /* Layer Init */
   Layercfg.WindowX0 = 0;
@@ -563,6 +608,8 @@ void drvLcdInitLayer(uint16_t layer_idx, uint32_t fb_addr)
   Layercfg.ImageHeight = drvLcdGetYSize();
 
   HAL_LTDC_ConfigLayer(&hltdc, &Layercfg, layer_idx);
+
+  return OK;
 }
 
 
@@ -677,14 +724,19 @@ void LTDC_ER_IRQHandler(void)
 /**
   * @brief  Fills a buffer.
   * @param  layer_idx: Layer index
-  * @param  pDst: Pointer to destination buffer
+  * @param  p_dst: Pointer to destination buffer
   * @param  x_size: Buffer width
   * @param  y_size: Buffer height
   * @param  line_offset: Offset
   * @param  color_idx: color index
   */
-static void fillBuffer(uint32_t layer_idx, void *pDst, uint32_t x_size, uint32_t y_size, uint32_t line_offset, uint32_t color_idx)
+static err_code_t fillBuffer(uint32_t layer_idx, void *p_dst, uint32_t x_size, uint32_t y_size, uint32_t line_offset, uint32_t color_idx)
 {
+  if(layer_idx >= MAX_LAYER)
+  {
+    return ERR_LCD_INVAILD_LAYER;
+  }
+
   /* Register to memory mode with ARGB8888 as color align */
   hdma2d.Init.Mode         = DMA2D_R2M;
   //hdma2d.Init.ColorMode    = DMA2D_ARGB8888;
@@ -699,46 +751,21 @@ static void fillBuffer(uint32_t layer_idx, void *pDst, uint32_t x_size, uint32_t
   {
     if(HAL_DMA2D_ConfigLayer(&hdma2d, layer_idx) == HAL_OK)
     {
-      if (HAL_DMA2D_Start(&hdma2d, color_idx, (uint32_t)pDst, x_size, y_size) == HAL_OK)
+      if (HAL_DMA2D_Start(&hdma2d, color_idx, (uint32_t)p_dst, x_size, y_size) == HAL_OK)
       {
         /* Polling For DMA transfer */
         HAL_DMA2D_PollForTransfer(&hdma2d, 10);
       }
     }
   }
+
+  return OK;
 }
 
-void DMA2D_CopyBuffer(uint32_t LayerIndex, void * pSrc, void * pDst, uint32_t xSize, uint32_t ySize, uint32_t OffLineSrc, uint32_t OffLineDst)
+void drvLcdCopyPicture(uint32_t *p_src, uint32_t *p_dst)
 {
-  uint32_t PixelFormat;
-
-  PixelFormat = LTDC_PIXEL_FORMAT_RGB888;
-  DMA2D->CR      = 0x00000000UL | (1 << 9);
-
-  /* Set up pointers */
-  DMA2D->FGMAR   = (uint32_t)pSrc;
-  DMA2D->OMAR    = (uint32_t)pDst;
-  DMA2D->FGOR    = OffLineSrc;
-  DMA2D->OOR     = OffLineDst;
-
-  /* Set up pixel format */
-  DMA2D->FGPFCCR = PixelFormat;
-
-  /*  Set up size */
-  DMA2D->NLR     = (uint32_t)(xSize << 16) | (uint32_t)ySize;
-
-  DMA2D->CR     |= DMA2D_CR_START;
-
-  /* Wait until transfer is done */
-  while (DMA2D->CR & DMA2D_CR_START)
-  {
-  }
-}
-
-void drvLcdCopyPicture(uint32_t *pSrc, uint32_t *pDst)
-{
-  uint32_t destination = (uint32_t)pDst;
-  uint32_t source      = (uint32_t)pSrc;
+  uint32_t destination = (uint32_t)p_dst;
+  uint32_t source      = (uint32_t)p_src;
 
 /*##-1- Configure the DMA2D Mode, Color Mode and output offset #############*/
   hdma2d.Init.Mode         = DMA2D_M2M;
@@ -804,6 +831,13 @@ void drvLcdCopyLayer(uint32_t src_index, uint32_t dst_index)
     }
   }
 }
+
+//TODO : Transfer complete callback
+void HAL_DMA2D_CLUTLoadingCpltCallback(DMA2D_HandleTypeDef *hdma2d)
+{
+  UNUSED(hdma2d);
+}
+
 
 /**************************** LINK OTM8009A (Display driver) ******************/
 /**
