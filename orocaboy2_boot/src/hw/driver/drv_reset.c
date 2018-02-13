@@ -93,8 +93,8 @@ uint8_t drvResetGetStatus(void)
 
 void drvResetRunWdgReset(void)
 {
-  wdgSetup(1);
-  wdgStart();
+  //wdgSetup(1);
+  //wdgStart();
 }
 
 void drvResetRunSoftReset(void)

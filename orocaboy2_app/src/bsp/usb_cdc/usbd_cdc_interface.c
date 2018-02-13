@@ -144,11 +144,10 @@ static int8_t CDC_Itf_Init(void)
   rxd_BufPtrOut   = 0;
 
 
-  // ���씠癒몃뒗 理쒖큹 �떎�뻾�떆 �븳踰덈쭔 �떎�뻾�븳�떎.
   if (h_cdc_tx_timer < 0)
   {
-    h_cdc_tx_timer = swtimerGetHandle();
-    swtimerSet(h_cdc_tx_timer, 5, LOOP_TIME, CDC_Itf_TxISR, NULL );
+    //h_cdc_tx_timer = swtimerGetHandle();
+    //swtimerSet(h_cdc_tx_timer, 5, LOOP_TIME, CDC_Itf_TxISR, NULL );
     //swtimerStart(h_cdc_tx_timer);
   }
   return (USBD_OK);
@@ -244,7 +243,7 @@ void CDC_Itf_SofISR(void)
 
   rx_buf_length = APP_RX_DATA_SIZE - CDC_Itf_RxAvailable() - 1;
 
-  // �닔�떊踰꾪띁媛� USB �쟾�넚 �뙣�궥 �씠�긽 �궓�븯�쓣�븣留� �닔�떊�븯�룄濡� �븿.
+  // 수신버퍼가 USB 전송 패킷 이상 남았을때만 수신하도록 함.
   if (usb_rx_full == true)
   {
     if (rx_buf_length > CDC_DATA_FS_MAX_PACKET_SIZE)
@@ -278,7 +277,7 @@ void CDC_Itf_TxISR(void *arg)
     return;
   }
 
-  // TODO: 蹂대궪�뜲�씠�꽣媛� 64�쓽 諛곗닔�씠硫� �젣濡쒗뙣�궥�쓣 蹂대궡�빞 �빐�꽌, 64�쓽 諛곗닔媛� �릺吏� �븡�룄濡� �엫�떇 蹂�寃�
+  // TODO: 보낼데이터가 64의 배수이면 제로패킷을 보내야 해서, 64의 배수가 되지 않도록 임시 변경
   if (buffsize%CDC_DATA_FS_MAX_PACKET_SIZE == 0)
   {
     buffsize -= 1;
@@ -343,7 +342,6 @@ static int8_t CDC_Itf_Receive(uint8_t* Buf, uint32_t *Len)
 
   rx_buf_length = APP_RX_DATA_SIZE - CDC_Itf_RxAvailable() - 1;
 
-  // �닔�떊踰꾪띁媛� USB �쟾�넚 �뙣�궥 �씠�긽 �궓�븯�쓣�븣留� �닔�떊�븯�룄濡� �븿.
   if (rx_buf_length > CDC_DATA_FS_MAX_PACKET_SIZE)
   {
     USBD_CDC_ReceivePacket(&USBD_Device);

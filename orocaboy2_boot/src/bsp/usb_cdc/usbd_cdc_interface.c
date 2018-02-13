@@ -139,12 +139,11 @@ static int8_t CDC_Itf_Init(void)
   rxd_BufPtrIn    = 0;
   rxd_BufPtrOut   = 0;
 
-
   // 타이머는 최초 실행시 한번만 실행한다.
   if (h_cdc_tx_timer < 0)
   {
-    h_cdc_tx_timer = swtimerGetHandle();
-    swtimerSet(h_cdc_tx_timer, 5, LOOP_TIME, CDC_Itf_TxISR, NULL );
+    //h_cdc_tx_timer = swtimerGetHandle();
+    //swtimerSet(h_cdc_tx_timer, 5, LOOP_TIME, CDC_Itf_TxISR, NULL );
     //swtimerStart(h_cdc_tx_timer);
   }
   return (USBD_OK);
