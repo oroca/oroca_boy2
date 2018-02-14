@@ -52,6 +52,7 @@
 #define _USE_HW_CMDIF
 #define _USE_HW_SDRAM
 #define _USE_HW_LCD
+#define _USE_HW_TS
 #define _USE_HW_SD
 #define _USE_HW_FATFS
 
@@ -65,6 +66,7 @@
 #define _USE_HW_CMDIF_FLASH
 #define _USE_HW_CMDIF_SDRAM
 #define _USE_HW_CMDIF_LCD
+#define _USE_HW_CMDIF_TS
 #define _USE_HW_CMDIF_SD
 #define _USE_HW_CMDIF_FATFS
 

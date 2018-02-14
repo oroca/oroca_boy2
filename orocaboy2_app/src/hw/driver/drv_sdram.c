@@ -252,7 +252,7 @@ void DMA2_Stream0_IRQHandler(void)
 void drvSdramMspInit(SDRAM_HandleTypeDef  *hsdram, void *Params)
 {
   static DMA_HandleTypeDef dma_handle;
-  GPIO_InitTypeDef gpio_init_structure;
+  GPIO_InitTypeDef GPIO_InitStruct;
 
   if(hsdram != (SDRAM_HandleTypeDef  *)NULL)
   {
@@ -272,51 +272,51 @@ void drvSdramMspInit(SDRAM_HandleTypeDef  *hsdram, void *Params)
     __HAL_RCC_GPIOI_CLK_ENABLE();
 
     /* Common GPIO configuration */
-    gpio_init_structure.Mode      = GPIO_MODE_AF_PP;
-    gpio_init_structure.Pull      = GPIO_PULLUP;
-    gpio_init_structure.Speed     = GPIO_SPEED_FAST;
-    gpio_init_structure.Alternate = GPIO_AF12_FMC;
+    GPIO_InitStruct.Mode      = GPIO_MODE_AF_PP;
+    GPIO_InitStruct.Pull      = GPIO_PULLUP;
+    GPIO_InitStruct.Speed     = GPIO_SPEED_FAST;
+    GPIO_InitStruct.Alternate = GPIO_AF12_FMC;
 
     /* GPIOC configuration : PC0 is SDNWE */
-    gpio_init_structure.Pin   = GPIO_PIN_0;
-    HAL_GPIO_Init(GPIOC, &gpio_init_structure);
+    GPIO_InitStruct.Pin   = GPIO_PIN_0;
+    HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
 
     /* GPIOD configuration */
-    gpio_init_structure.Pin   = GPIO_PIN_0 | GPIO_PIN_1 | GPIO_PIN_8| GPIO_PIN_9 | GPIO_PIN_10 |\
+    GPIO_InitStruct.Pin   = GPIO_PIN_0 | GPIO_PIN_1 | GPIO_PIN_8| GPIO_PIN_9 | GPIO_PIN_10 |\
                                 GPIO_PIN_14 | GPIO_PIN_15;
 
 
-    HAL_GPIO_Init(GPIOD, &gpio_init_structure);
+    HAL_GPIO_Init(GPIOD, &GPIO_InitStruct);
 
     /* GPIOE configuration */
-    gpio_init_structure.Pin   = GPIO_PIN_0 | GPIO_PIN_1 | GPIO_PIN_7| GPIO_PIN_8 | GPIO_PIN_9 |\
+    GPIO_InitStruct.Pin   = GPIO_PIN_0 | GPIO_PIN_1 | GPIO_PIN_7| GPIO_PIN_8 | GPIO_PIN_9 |\
                                 GPIO_PIN_10 | GPIO_PIN_11 | GPIO_PIN_12 | GPIO_PIN_13 | GPIO_PIN_14 |\
                                 GPIO_PIN_15;
 
-    HAL_GPIO_Init(GPIOE, &gpio_init_structure);
+    HAL_GPIO_Init(GPIOE, &GPIO_InitStruct);
 
     /* GPIOF configuration */
-    gpio_init_structure.Pin   = GPIO_PIN_0 | GPIO_PIN_1 | GPIO_PIN_2| GPIO_PIN_3 | GPIO_PIN_4 |\
+    GPIO_InitStruct.Pin   = GPIO_PIN_0 | GPIO_PIN_1 | GPIO_PIN_2| GPIO_PIN_3 | GPIO_PIN_4 |\
                                 GPIO_PIN_5 | GPIO_PIN_11 | GPIO_PIN_12 | GPIO_PIN_13 | GPIO_PIN_14 |\
                                 GPIO_PIN_15;
 
-    HAL_GPIO_Init(GPIOF, &gpio_init_structure);
+    HAL_GPIO_Init(GPIOF, &GPIO_InitStruct);
 
     /* GPIOG configuration */
-    gpio_init_structure.Pin   = GPIO_PIN_0 | GPIO_PIN_1 | GPIO_PIN_4| GPIO_PIN_5 | GPIO_PIN_8 |\
+    GPIO_InitStruct.Pin   = GPIO_PIN_0 | GPIO_PIN_1 | GPIO_PIN_4| GPIO_PIN_5 | GPIO_PIN_8 |\
                                 GPIO_PIN_15;
-    HAL_GPIO_Init(GPIOG, &gpio_init_structure);
+    HAL_GPIO_Init(GPIOG, &GPIO_InitStruct);
 
     /* GPIOH configuration */
-    gpio_init_structure.Pin   = GPIO_PIN_2 | GPIO_PIN_3 | GPIO_PIN_8 | GPIO_PIN_9 |\
+    GPIO_InitStruct.Pin   = GPIO_PIN_2 | GPIO_PIN_3 | GPIO_PIN_8 | GPIO_PIN_9 |\
                                 GPIO_PIN_10 | GPIO_PIN_11 | GPIO_PIN_12 | GPIO_PIN_13 | GPIO_PIN_14 |\
                                 GPIO_PIN_15;
-    HAL_GPIO_Init(GPIOH, &gpio_init_structure);
+    HAL_GPIO_Init(GPIOH, &GPIO_InitStruct);
 
     /* GPIOI configuration */
-    gpio_init_structure.Pin   = GPIO_PIN_0 | GPIO_PIN_1 | GPIO_PIN_2 | GPIO_PIN_3 | GPIO_PIN_4 |\
+    GPIO_InitStruct.Pin   = GPIO_PIN_0 | GPIO_PIN_1 | GPIO_PIN_2 | GPIO_PIN_3 | GPIO_PIN_4 |\
                                 GPIO_PIN_5 | GPIO_PIN_6 | GPIO_PIN_7 | GPIO_PIN_9 | GPIO_PIN_10;
-    HAL_GPIO_Init(GPIOI, &gpio_init_structure);
+    HAL_GPIO_Init(GPIOI, &GPIO_InitStruct);
 
     /* Configure common DMA parameters */
     dma_handle.Init.Channel             = DMA_CHANNEL_0;

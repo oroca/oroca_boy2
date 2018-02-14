@@ -56,6 +56,7 @@ void hwInit(void)
   eepromInit();
   sdramInit();
   lcdInit();
+  tsInit();
 
   p_hw->init.sdcard = sdInit();
   p_hw->init.fatfs = false;

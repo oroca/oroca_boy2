@@ -88,15 +88,22 @@
 #define LCD_DSI_PIXEL_DATA_FMT_RBG888  DSI_RGB888 /*!< DSI packet pixel format chosen is RGB888 : 24 bpp */
 #define LCD_DSI_PIXEL_DATA_FMT_RBG565  DSI_RGB565 /*!< DSI packet pixel format chosen is RGB565 : 16 bpp */
 
-#define LTDC_ACTIVE_LAYER_BACKGROUND      ((uint32_t) 0) //_DEF_LCD_LAYER1
-#define LTDC_ACTIVE_LAYER_FOREGROUND      ((uint32_t) 1) //_DEF_LCD_LAYER2
-#define LTDC_DEFAULT_ACTIVE_LAYER         LTDC_ACTIVE_LAYER_BACKGROUND
+#define LTDC_DEFAULT_ACTIVE_LAYER         _DEF_LCD_LAYER1
 
 #define LCD_OTM8009A_ID        ((uint32_t) 0)
 
-uint32_t lcd_x_size = OTM8009A_800X480_WIDTH;
-uint32_t lcd_y_size = OTM8009A_800X480_HEIGHT;
-static uint32_t  active_layer_idx = LTDC_ACTIVE_LAYER_BACKGROUND;
+#define VSA   OTM8009A_480X800_VSYNC /*!< Vertical start active time in units of lines */
+#define VBP   OTM8009A_480X800_VBP /*!< Vertical Back Porch time in units of lines */
+#define VFP   OTM8009A_480X800_VFP /*!< Vertical Front Porch time in units of lines */
+#define VACT  OTM8009A_800X480_HEIGHT /*!< Vertical Active time in units of lines = imageSize Y in pixels to display */
+#define HSA   OTM8009A_480X800_HSYNC /*!< Horizontal start active time in units of lcdClk */
+#define HBP   OTM8009A_480X800_HBP /*!< Horizontal Back Porch time in units of lcdClk */
+#define HFP   OTM8009A_480X800_HFP /*!< Horizontal Front Porch time in units of lcdClk */
+#define HACT  OTM8009A_800X480_WIDTH /*!< Horizontal Active time in units of lcdClk = imageSize X in pixels to display */
+
+uint32_t lcd_x_size = HACT;
+uint32_t lcd_y_size = VACT;
+static uint32_t  active_layer_idx = _DEF_LCD_LAYER1;
 
 DSI_HandleTypeDef hdsi;
 LTDC_HandleTypeDef  hltdc;
@@ -121,20 +128,11 @@ err_code_t drvLcdInit(uint8_t orientation)
 {
   DSI_PLLInitTypeDef dsiPllInit;
   DSI_PHY_TimerTypeDef  PhyTimings;
-  static RCC_PeriphCLKInitTypeDef  PeriphClkInitStruct;
+  RCC_PeriphCLKInitTypeDef  PeriphClkInitStruct;
   uint32_t LcdClock  = 27429; /*!< LcdClk = 27429 kHz */
   uint32_t otm8009a_lcd_orient;
 
   uint32_t laneByteClk_kHz = 0;
-  uint32_t                   VSA; /*!< Vertical start active time in units of lines */
-  uint32_t                   VBP; /*!< Vertical Back Porch time in units of lines */
-  uint32_t                   VFP; /*!< Vertical Front Porch time in units of lines */
-  uint32_t                   VACT; /*!< Vertical Active time in units of lines = imageSize Y in pixels to display */
-  uint32_t                   HSA; /*!< Horizontal start active time in units of lcdClk */
-  uint32_t                   HBP; /*!< Horizontal Back Porch time in units of lcdClk */
-  uint32_t                   HFP; /*!< Horizontal Front Porch time in units of lcdClk */
-  uint32_t                   HACT; /*!< Horizontal Active time in units of lcdClk = imageSize X in pixels to display */
-
 
   /* Toggle Hardware Reset of the DSI LCD using
   * its XRES signal (active low) */
@@ -160,13 +158,10 @@ err_code_t drvLcdInit(uint8_t orientation)
   dsiPllInit.PLLODF   = DSI_PLL_OUT_DIV1;
 
   laneByteClk_kHz = 62500; /* 500 MHz / 8 = 62.5 MHz = 62500 kHz */
-
   /* Set number of Lanes */
   hdsi.Init.NumberOfLanes = DSI_TWO_DATA_LANES;
-
   /* TXEscapeCkdiv = f(LaneByteClk)/15.62 = 4 */
   hdsi.Init.TXEscapeCkdiv = laneByteClk_kHz/15620;
-
   HAL_DSI_Init(&(hdsi), &(dsiPllInit));
 
   /* Timing parameters for all Video modes
@@ -182,18 +177,6 @@ err_code_t drvLcdInit(uint8_t orientation)
     lcd_x_size = OTM8009A_800X480_WIDTH;  /* 800 */
     lcd_y_size = OTM8009A_800X480_HEIGHT; /* 480 */
   }
-
-  HACT = lcd_x_size;
-  VACT = lcd_y_size;
-
-  /* The following values are same for portrait and landscape orientations */
-  VSA  = OTM8009A_480X800_VSYNC;
-  VBP  = OTM8009A_480X800_VBP;
-  VFP  = OTM8009A_480X800_VFP;
-  HSA  = OTM8009A_480X800_HSYNC;
-  HBP  = OTM8009A_480X800_HBP;
-  HFP  = OTM8009A_480X800_HFP;
-
 
   hdis_video_conf.VirtualChannelID = LCD_OTM8009A_ID;
   hdis_video_conf.ColorCoding = LCD_DSI_PIXEL_DATA_FMT_RBG565;
@@ -332,7 +315,6 @@ void drvLcdDrawPixel(uint16_t x_pos, uint16_t y_pos, uint32_t rgb_code)
   *(__IO uint32_t*) (hltdc.LayerCfg[active_layer_idx].FBStartAdress + (2*(y_pos*drvLcdGetXSize() + x_pos))) = rgb_code;
 }
 
-
 /**
   * @brief  Reads an LCD pixel.
   * @param  x_pos: X position
@@ -366,10 +348,10 @@ uint32_t drvLcdReadPixel(uint16_t x_pos, uint16_t y_pos)
   * @brief  Clears the whole currently active layer of LTDC.
   * @param  color: color of the background
   */
-void drvLcdClear(uint32_t color)
+void drvLcdClear(uint32_t rgb_code)
 {
   /* Clear the LCD */
-  fillBuffer(active_layer_idx, (uint32_t *)(hltdc.LayerCfg[active_layer_idx].FBStartAdress), drvLcdGetXSize(), drvLcdGetYSize(), 0, color);
+  fillBuffer(active_layer_idx, (uint32_t *)(hltdc.LayerCfg[active_layer_idx].FBStartAdress), drvLcdGetXSize(), drvLcdGetYSize(), 0, rgb_code);
 }
 
 /**
@@ -381,17 +363,17 @@ void drvLcdClear(uint32_t color)
 void drvLcdReset(void)
 {
 /* EVAL Rev B and beyond : reset the LCD by activation of XRES (active low) connected to PH7 */
-  GPIO_InitTypeDef  gpio_init_structure;
+  GPIO_InitTypeDef  GPIO_InitStruct;
 
   __HAL_RCC_GPIOH_CLK_ENABLE();
 
     /* Configure the GPIO on PH7 */
-  gpio_init_structure.Pin   = GPIO_PIN_7;
-  gpio_init_structure.Mode  = GPIO_MODE_OUTPUT_OD;
-  gpio_init_structure.Pull  = GPIO_NOPULL;
-  gpio_init_structure.Speed = GPIO_SPEED_HIGH;
+  GPIO_InitStruct.Pin   = GPIO_PIN_7;
+  GPIO_InitStruct.Mode  = GPIO_MODE_OUTPUT_OD;
+  GPIO_InitStruct.Pull  = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_HIGH;
 
-  HAL_GPIO_Init(GPIOH, &gpio_init_structure);
+  HAL_GPIO_Init(GPIOH, &GPIO_InitStruct);
 
   /* Activate XRES active low */
   HAL_GPIO_WritePin(GPIOH, GPIO_PIN_7, GPIO_PIN_RESET);
@@ -649,7 +631,7 @@ static void drvLcdMspInit(void)
   HAL_NVIC_EnableIRQ(DMA2D_IRQn);
 
   /** @brief NVIC configuration for DSI interrupt that is now enabled */
-  HAL_NVIC_SetPriority(DSI_IRQn, 3, 0);
+  HAL_NVIC_SetPriority(DSI_IRQn, 0xF, 0);
   HAL_NVIC_EnableIRQ(DSI_IRQn);
 }
 

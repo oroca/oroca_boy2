@@ -29,6 +29,7 @@
 #include "eeprom.h"
 #include "sdram.h"
 #include "lcd.h"
+#include "ts.h"
 #include "sd.h"
 #include "fatfs/fatfs.h"
 #include "cmdif/cmdif.h"
