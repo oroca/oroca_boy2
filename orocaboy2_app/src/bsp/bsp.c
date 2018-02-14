@@ -16,6 +16,7 @@
 //-- Internal Variables
 //
 USBD_HandleTypeDef USBD_Device;
+static bool is_init = false;
 
 
 //-- External Variables
@@ -28,7 +29,7 @@ static void SystemClock_Config(void);
 
 
 //-- External Functions
-
+extern err_code_t drvSdramInit(void);
 
 
 
@@ -39,6 +40,8 @@ void bspInit(void)
 {
   GPIO_InitTypeDef  GPIO_InitStruct;
 
+  if (is_init == true) return;
+  is_init = true;
 
   HAL_DeInit();
   HAL_Init();
@@ -69,6 +72,8 @@ void bspInit(void)
   HAL_GPIO_WritePin(GPIOA, GPIO_PIN_11, GPIO_PIN_RESET);
   HAL_GPIO_WritePin(GPIOA, GPIO_PIN_12, GPIO_PIN_RESET);
   HAL_Delay(300);
+
+  drvSdramInit();
 }
 
 void bspDeinit(void)

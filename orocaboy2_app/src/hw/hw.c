@@ -57,6 +57,7 @@ void hwInit(void)
   sdramInit();
   lcdInit();
   tsInit();
+  memInit(0xC0800000, 8*1024*1024);
 
   p_hw->init.sdcard = sdInit();
   p_hw->init.fatfs = false;

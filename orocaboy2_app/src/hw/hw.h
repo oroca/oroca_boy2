@@ -31,6 +31,7 @@
 #include "lcd.h"
 #include "ts.h"
 #include "sd.h"
+#include "mem.h"
 #include "fatfs/fatfs.h"
 #include "cmdif/cmdif.h"
 

@@ -40,7 +40,7 @@ int main(void)
   mainInit();
 
 
-  osThreadDef(threadMain, threadMain, osPriorityNormal, 0, _HW_DEF_RTOS_MEM_SIZE(6*1024));
+  osThreadDef(threadMain, threadMain, osPriorityNormal, 0, _HW_DEF_RTOS_MEM_SIZE(12*1024));
   osThreadCreate(osThread(threadMain), NULL);
 
   osKernelStart();
@@ -54,8 +54,8 @@ static void mainInit(void)
   bspInit();
   hwInit();
 
-  // TODO: FreeRTOS¿¡¼­ newlib-nano »ç¿ë½Ã strtok ÇÔ¼ö »ç¿ë½Ã ÇÏµåÆúÆ® ¹ß»ý
-  //       ±×·¡¼­ ÀÓ½Ã·Î newlib »ç¿ëÀ¸·Î º¯°æ ÇÏ¿´À½. ¾Æ·¡ ¸µÅ© ÂýÁ¶ÇÏ¿© ¹Ù²Ü ÇÊ¿ä ÀÖÀ½.
+  // TODO: FreeRTOSï¿½ï¿½ï¿½ï¿½ newlib-nano ï¿½ï¿½ï¿½ï¿½ strtok ï¿½Ô¼ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ïµï¿½ï¿½ï¿½Æ® ï¿½ß»ï¿½
+  //       ï¿½×·ï¿½ï¿½ï¿½ ï¿½Ó½Ã·ï¿½ newlib ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ï¿ï¿½ï¿½ï¿½. ï¿½Æ·ï¿½ ï¿½ï¿½Å© ï¿½ï¿½ï¿½ï¿½ï¿½Ï¿ï¿½ ï¿½Ù²ï¿½ ï¿½Ê¿ï¿½ ï¿½ï¿½ï¿½ï¿½.
   //       https://mcuoneclipse.com/2017/07/02/using-freertos-with-newlib-and-newlib-nano/
   cmdifBegin(_DEF_UART1, 57600);
 }
