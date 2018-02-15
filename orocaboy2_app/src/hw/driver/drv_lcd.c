@@ -315,6 +315,43 @@ void drvLcdDrawPixel(uint16_t x_pos, uint16_t y_pos, uint32_t rgb_code)
   *(__IO uint32_t*) (hltdc.LayerCfg[active_layer_idx].FBStartAdress + (2*(y_pos*drvLcdGetXSize() + x_pos))) = rgb_code;
 }
 
+void drvLcdCopyBuffer(uint16_t x_pos, uint16_t y_pos, uint8_t *p_data, uint32_t length)
+{
+  uint32_t PixelFormat;
+  uint32_t dst_addr;
+
+  dst_addr = hltdc.LayerCfg[active_layer_idx].FBStartAdress + 2*y_pos*drvLcdGetXSize() + x_pos;
+
+
+  PixelFormat = LTDC_PIXEL_FORMAT_RGB565;
+  DMA2D->CR      = 0x00000000UL | (1 << 9) | (0x2 << 16);
+
+  /* Set up pointers */
+  DMA2D->FGMAR   = (uint32_t)p_data;
+  DMA2D->OMAR    = (uint32_t)dst_addr;
+  DMA2D->BGMAR   = 0;
+  DMA2D->FGOR    = 0;
+  DMA2D->OOR     = 0;
+  DMA2D->BGOR    = 0;
+
+  /* Set up pixel format */
+  DMA2D->FGPFCCR = LTDC_PIXEL_FORMAT_RGB565;
+  DMA2D->BGPFCCR = PixelFormat;
+  DMA2D->OPFCCR  = PixelFormat;
+
+  /*  Set up size */
+  DMA2D->NLR     = (uint32_t)(length << 16) | (uint32_t)1;
+
+
+  DMA2D->CR     |= DMA2D_CR_START;
+
+  /* Wait until transfer is done */
+  while (DMA2D->CR & DMA2D_CR_START)
+  {
+  }
+}
+
+
 /**
   * @brief  Reads an LCD pixel.
   * @param  x_pos: X position
