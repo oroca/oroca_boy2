@@ -22,12 +22,12 @@ typedef struct
 
 
 uint32_t            flash_sector_total = FLASH_SECTOR_TOTAL;
-flash_sector_attr_t   flash_sector_attr[FLASH_SECTOR_TOTAL];
+flash_sector_attr_t flash_sector_attr[FLASH_SECTOR_TOTAL];
 
 
 
 static err_code_t drvFlashEraseSector(uint32_t sector);
-
+static err_code_t drvFlashEraseSectors(uint32_t start_sector, uint32_t sector_cnt );
 
 
 
@@ -174,36 +174,41 @@ err_code_t drvFlashErase(uint32_t addr, uint32_t length)
   uint32_t target_addr_end;
 
   uint32_t i;
+  int32_t  first_sector;
+  int32_t  last_sector;
 
 
   target_addr_begin = addr;
-  target_addr_end   = addr + length - 1;
+  target_addr_end   = addr + length;
 
+
+  first_sector = -1;
+  last_sector  = -1;
 
   for (i=0; i<flash_sector_total; i++)
   {
     addr_begin = flash_sector_attr[i].addr;
-    addr_end   = flash_sector_attr[i].addr + flash_sector_attr[i].length - 1;
+    addr_end   = flash_sector_attr[i].addr + flash_sector_attr[i].length;
 
-    if ((addr_begin >= target_addr_begin) && (addr_begin <= target_addr_end))
+    if ((target_addr_begin < addr_end) && (target_addr_begin >= addr_begin))
     {
-      err_code = drvFlashEraseSector(i);
-    }
-    else if((addr_end >= target_addr_begin) && (addr_end <= target_addr_end) )
-    {
-      err_code = drvFlashEraseSector(i);
-    }
-    else if((addr_begin >= target_addr_begin) && (addr_end <= target_addr_end) )
-    {
-      err_code = drvFlashEraseSector(i);
-    }
-    else if((addr_begin <= target_addr_begin) && (addr_end >= target_addr_end) )
-    {
-      err_code = drvFlashEraseSector(i);
+      first_sector = i;
     }
 
+    if ((target_addr_end < addr_end) && (target_addr_end >= addr_begin))
+    {
+      last_sector = i;
+    }
   }
 
+  if (first_sector >= 0 && last_sector >= 0)
+  {
+    err_code = drvFlashEraseSectors(first_sector,  last_sector - first_sector + 1);
+  }
+  else
+  {
+    err_code = ERR_FLASH_INVALID_ADDR;
+  }
 
   return err_code;
 }
