@@ -12,6 +12,8 @@
 #include "hw.h"
 
 
+static bool is_init = false;
+
 
 static SDRAM_HandleTypeDef hsdram;
 static FMC_SDRAM_TimingTypeDef timing;
@@ -30,6 +32,9 @@ void drvSdramMspDeinit(SDRAM_HandleTypeDef  *hsdram, void *Params);
 err_code_t drvSdramInit(void)
 {
   static err_code_t sdramstatus = ERR_SDRAM;
+
+  if (is_init == true) return OK;
+  is_init = true;
 
   /* SDRAM device configuration */
   hsdram.Instance = FMC_SDRAM_DEVICE;

@@ -11,7 +11,7 @@
 **
 **  Environment : System Workbench for MCU
 **
-**  Distribution: The file is distributed “as is,” without any warranty
+**  Distribution: The file is distributed ï¿½as is,ï¿½ without any warranty
 **                of any kind.
 **
 **  (c)Copyright System Workbench for MCU.
@@ -100,7 +100,7 @@ int _write(int file, char *ptr, int len)
 	}
 	return len;
 }
-
+#if 1
 caddr_t _sbrk(int incr)
 {
 	extern char end asm("end");
@@ -123,6 +123,32 @@ caddr_t _sbrk(int incr)
 
 	return (caddr_t) prev_heap_end;
 }
+#else
+caddr_t _sbrk(int incr)
+{
+  extern char __heap_start asm("__heap_start"); /* Defined by the linker. */
+  extern char __heap_limit asm("__heap_limit"); /* Defined by the linker. */
+
+  static char *heap_end;
+    static char *heap_limit = &__heap_limit;
+
+  char *prev_heap_end;
+
+  if (heap_end == 0)
+    heap_end = &__heap_start;
+
+  prev_heap_end = heap_end;
+  if (heap_end + incr > heap_limit)
+  {
+    errno = ENOMEM; // not enough memory
+    return (caddr_t) -1;
+  }
+
+  heap_end += incr;
+
+  return (caddr_t) prev_heap_end;
+}
+#endif
 
 int _close(int file)
 {

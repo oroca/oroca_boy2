@@ -40,7 +40,7 @@ int main(void)
   mainInit();
 
 
-  osThreadDef(threadMain, threadMain, osPriorityNormal, 0, _HW_DEF_RTOS_MEM_SIZE(6*1024));
+  osThreadDef(threadMain, threadMain, osPriorityNormal, 0, _HW_DEF_RTOS_MEM_SIZE(12*1024));
   osThreadCreate(osThread(threadMain), NULL);
 
   osKernelStart();
@@ -53,6 +53,7 @@ static void mainInit(void)
 {
   bspInit();
   hwInit();
+
 
   // TODO: FreeRTOS에서 newlib-nano 사용시 strtok 함수 사용시 하드폴트 발생
   //       그래서 임시로 newlib 사용으로 변경 하였음. 아래 링크 찹조하여 바꿀 필요 있음.

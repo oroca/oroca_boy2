@@ -35,6 +35,7 @@
 //-- Internal Variables
 //
 drv_uart_t  drv_uart_tbl[DRV_UART_CH_MAX];
+uint8_t     drv_uart_buf[2048];
 
 //-- External Variables
 //
@@ -148,7 +149,7 @@ bool drvUartOpen(uint8_t channel, uint32_t baud, uint32_t option)
 
       if (p_drv_uart->core.init == false)
       {
-    	qbufferCreate(&p_drv_uart->hw.uart_buffer, 2048);
+        qbufferCreateMem(&p_drv_uart->hw.uart_buffer, (uint8_t *)drv_uart_buf, 2048);
       }
 
       p_drv_uart->core.init = true;
