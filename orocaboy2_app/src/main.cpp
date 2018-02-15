@@ -54,8 +54,8 @@ static void mainInit(void)
   bspInit();
   hwInit();
 
-  // TODO: FreeRTOS¿¡¼­ newlib-nano »ç¿ë½Ã strtok ÇÔ¼ö »ç¿ë½Ã ÇÏµåÆúÆ® ¹ß»ı
-  //       ±×·¡¼­ ÀÓ½Ã·Î newlib »ç¿ëÀ¸·Î º¯°æ ÇÏ¿´À½. ¾Æ·¡ ¸µÅ© ÂıÁ¶ÇÏ¿© ¹Ù²Ü ÇÊ¿ä ÀÖÀ½.
+  // TODO: FreeRTOSì—ì„œ newlib-nano ì‚¬ìš©ì‹œ strtok í•¨ìˆ˜ ì‚¬ìš©ì‹œ í•˜ë“œí´íŠ¸ ë°œìƒ
+  //       ê·¸ë˜ì„œ ì„ì‹œë¡œ newlib ì‚¬ìš©ìœ¼ë¡œ ë³€ê²½ í•˜ì˜€ìŒ. ì•„ë˜ ë§í¬ ì°¹ì¡°í•˜ì—¬ ë°”ê¿€ í•„ìš” ìˆìŒ.
   //       https://mcuoneclipse.com/2017/07/02/using-freertos-with-newlib-and-newlib-nano/
   cmdifBegin(_DEF_UART1, 57600);
 }
