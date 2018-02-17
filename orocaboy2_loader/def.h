@@ -50,7 +50,8 @@ typedef uint16_t err_code_t;
 
 
 
-#define ERRCODE_TIMEOUT (uint16_t)0xF255
+#define ERRCODE_TIMEOUT       (uint16_t)0xF255
+#define ERRCODE_NOMATCH_CMD   (uint16_t)0xF256
 
 
 #endif // DEF_H

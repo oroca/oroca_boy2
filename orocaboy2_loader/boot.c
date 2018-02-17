@@ -225,7 +225,7 @@ err_code_t bootCmdFlashErase(uint32_t addr, uint32_t length)
   data[index++] = length >> 24;
 
 
-  errcode = cmdSendCmdRxResp(p_cmd, BOOT_CMD_FLASH_ERASE, data, index, 3000);
+  errcode = cmdSendCmdRxResp(p_cmd, BOOT_CMD_FLASH_ERASE, data, index, 10000);
 
   return errcode;
 }
@@ -255,7 +255,7 @@ err_code_t bootCmdFlashWrite(uint32_t addr, uint8_t *p_data, uint32_t length)
     data[index++] = p_data[i];
   }
 
-  errcode = cmdSendCmdRxResp(p_cmd, BOOT_CMD_FLASH_WRITE, data, index, 3000);
+  errcode = cmdSendCmdRxResp(p_cmd, BOOT_CMD_FLASH_WRITE, data, index, 1000);
 
   return errcode;
 }
@@ -284,8 +284,15 @@ err_code_t bootCmdFlashVerfy(uint32_t addr, uint32_t length, uint16_t tx_crc, ui
 
   errcode = cmdSendCmdRxResp(p_cmd, BOOT_CMD_FLASH_VERIFY, data, index, 3000);
 
-  *rx_crc  = p_cmd->rx_packet.data[0];
-  *rx_crc |= p_cmd->rx_packet.data[1] << 8;
+  if (errcode == OK)
+  {
+    *rx_crc  = p_cmd->rx_packet.data[0];
+    *rx_crc |= p_cmd->rx_packet.data[1] << 8;
+  }
+  else
+  {
+    *rx_crc = 0;
+  }  
 
   return errcode;
 }

@@ -41,7 +41,7 @@ int download(int argc, char *argv[])
   uint32_t fw_addr    = strtoul((const char * ) argv[ _DEF_ARG_ADDR ], (char **)NULL, 16 );
 
   char *src_filename  = (char *)argv[ _DEF_ARG_FILE ];
-  char dst_filename[strlen(src_filename)];
+  char dst_filename[strlen(src_filename) + 6];
 
 
   printf("\r\n@ Make binary (Add Tag)...\r\n");
@@ -177,7 +177,7 @@ int download(int argc, char *argv[])
     printf("  address   \t: 0x%08X\n", fw_addr);
     printf("  size      \t: %d KB (0x%X)\n", fw_fpsize/1024, fw_fpsize);
 
-    for (i=0; i<3; i++)
+    for (i=0; i<1; i++)
     {
       time_pre = millis();
       errcode = bootCmdFlashErase(fw_addr, fw_fpsize);
@@ -191,7 +191,7 @@ int download(int argc, char *argv[])
     {
       if (i > 0)
       {
-        printf("  erase fw ret \t: OK (%d ms), retry %d\n", millis()-time_pre, i-1);
+        printf("  erase fw ret \t: OK (%d ms), retry %d\n", millis()-time_pre, i);
       }
       else
       {
@@ -250,6 +250,10 @@ int download(int argc, char *argv[])
           percent = (addr_cnt + readbytes) * 100/fw_fpsize;
           printf("  flash fw \t: %d %%\r", percent);
           break;
+        }
+        else
+        {
+          printf("  flash fw retry 0x%X 0x%X %d\n", errcode, fw_addr+addr_cnt, (int)readbytes);
         }
       }
       if( errcode != OK )

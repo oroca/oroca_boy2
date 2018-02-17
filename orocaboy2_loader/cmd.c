@@ -70,6 +70,14 @@ void cmdWrite(uint8_t ch, uint8_t *p_data, uint32_t length)
   uartWrite(ch, p_data, length);
 }
 
+void cmdFlush(uint8_t ch)
+{
+  while(uartAvailable(ch) > 0)
+  {
+    uartRead(ch);
+  }
+}
+
 bool cmdReceivePacket(cmd_t *p_cmd)
 {
   bool     ret = false;
@@ -95,7 +103,7 @@ bool cmdReceivePacket(cmd_t *p_cmd)
 
   //-- 바이트간 타임아웃 설정(100ms)
   //
-  if((millis()-p_cmd->save_time[0]) > 100)
+  if((millis()-p_cmd->save_time[0]) > 1000)
   {
     p_cmd->state        = CMD_STATE_WAIT_STX;
     p_cmd->save_time[0] = millis();
@@ -337,6 +345,7 @@ void cmdSendCmd(cmd_t *p_cmd, uint8_t cmd, uint8_t *p_data, uint32_t length)
   cmd_tx_buffer[index++] = check_sum;
   cmd_tx_buffer[index++] = CMD_ETX;
 
+  cmdFlush(ch);
   cmdWrite(ch, cmd_tx_buffer, index);
 }
 
@@ -353,7 +362,14 @@ err_code_t cmdSendCmdRxResp(cmd_t *p_cmd, uint8_t cmd, uint8_t *p_data, uint32_t
   {
     if (cmdReceivePacket(p_cmd) == true)
     {
-      errcode = p_cmd->rx_packet.error;
+      if (p_cmd->rx_packet.cmd == cmd)
+      {
+        errcode = p_cmd->rx_packet.error;
+      }
+      else
+      {
+        errcode = ERRCODE_NOMATCH_CMD;
+      }
       break;
     }
 
