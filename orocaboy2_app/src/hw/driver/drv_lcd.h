@@ -126,6 +126,11 @@ void       drvLcdDrawPixel(uint16_t x_pos, uint16_t y_pos, uint32_t rgb_code);
 void       drvLcdClear(uint32_t rgb_code);
 void       drvLcdCopyLayer(uint32_t src_index, uint32_t dst_index);
 
+void drvLcdFillRect(uint16_t x_pos, uint16_t y_pos, uint16_t width, uint16_t height, uint16_t rgb_code);
+
+bool       drvLcdDrawAvailable(void);
+void       drvLcdOnDoubleBuffering(bool enable);
+
 err_code_t drvLcdSetLayerAddr(uint32_t layer_idx, uint32_t addr);
 err_code_t drvLcdSetLayerWindow(uint16_t layer_idx, uint16_t x_pos, uint16_t y_pos, uint16_t width, uint16_t height);
 err_code_t drvLcdSetLayerVisible(uint32_t layer_idx, uint8_t state);

@@ -104,6 +104,8 @@
 uint32_t lcd_x_size = HACT;
 uint32_t lcd_y_size = VACT;
 static uint32_t  active_layer_idx = _DEF_LCD_LAYER1;
+static volatile bool is_draw_available = false;
+static volatile bool en_double_buffering = false;
 
 DSI_HandleTypeDef hdsi;
 LTDC_HandleTypeDef  hltdc;
@@ -268,6 +270,10 @@ err_code_t drvLcdInit(uint8_t orientation)
   /* Initialize the LTDC */
   HAL_LTDC_Init(&hltdc);
 
+  /* Enable Line Interrupt*/
+  //HAL_LTDC_ProgramLineEvent(&hltdc, drvLcdGetYSize());
+  HAL_LTDC_Reload(&hltdc, LTDC_RELOAD_VERTICAL_BLANKING);
+
   /* Enable the DSI host and wrapper after the LTDC initialization
      To avoid any synchronization issue, the DSI shall be started after enabling the LTDC */
   HAL_DSI_Start(&(hdsi));
@@ -314,6 +320,35 @@ void drvLcdDrawPixel(uint16_t x_pos, uint16_t y_pos, uint32_t rgb_code)
   /* Write data value to all SDRAM memory */
   *(__IO uint32_t*) (hltdc.LayerCfg[active_layer_idx].FBStartAdress + (2*(y_pos*drvLcdGetXSize() + x_pos))) = rgb_code;
 }
+
+void drvLcdFillRect(uint16_t x_pos, uint16_t y_pos, uint16_t width, uint16_t height, uint16_t rgb_code)
+{
+  uint32_t addr = (hltdc.LayerCfg[active_layer_idx].FBStartAdress + (2*(y_pos*drvLcdGetXSize() + x_pos)));
+
+  fillBuffer(active_layer_idx, (uint32_t *) addr, width, height, (drvLcdGetXSize() - width), rgb_code);
+}
+
+
+/**
+  * @retval
+  * */
+bool drvLcdDrawAvailable(void)
+{
+  bool ret = is_draw_available;
+
+  if(is_draw_available == true)
+  {
+    is_draw_available = false;
+  }
+
+  return ret;
+}
+
+void drvLcdOnDoubleBuffering(bool enable)
+{
+  en_double_buffering = enable;
+}
+
 
 void drvLcdCopyBuffer(uint16_t x_pos, uint16_t y_pos, uint8_t *p_data, uint32_t length)
 {
@@ -462,8 +497,8 @@ err_code_t drvLcdSetLayerVisible(uint32_t layer_idx, uint8_t state)
   {
     __HAL_LTDC_LAYER_DISABLE(&(hltdc), layer_idx);
   }
-  __HAL_LTDC_RELOAD_IMMEDIATE_CONFIG(&(hltdc));
-
+  //__HAL_LTDC_RELOAD_IMMEDIATE_CONFIG(&(hltdc));
+  __HAL_LTDC_VERTICAL_BLANKING_RELOAD_CONFIG(&(hltdc));
   return OK;
 }
 
@@ -807,7 +842,7 @@ void drvLcdCopyPicture(uint32_t *p_src, uint32_t *p_dst)
   {
     if(HAL_DMA2D_ConfigLayer(&hdma2d, 1) == HAL_OK)
     {
-      if (HAL_DMA2D_Start(&hdma2d, source, destination, 480, 800) == HAL_OK)
+      if (HAL_DMA2D_Start(&hdma2d, source, destination, lcdGetXSize(), lcdGetYSize()) == HAL_OK)
       {
         /* Polling For DMA transfer */
         HAL_DMA2D_PollForTransfer(&hdma2d, 100);
@@ -851,11 +886,34 @@ void drvLcdCopyLayer(uint32_t src_index, uint32_t dst_index)
   }
 }
 
-//TODO : Transfer complete callback
-void HAL_DMA2D_CLUTLoadingCpltCallback(DMA2D_HandleTypeDef *hdma2d)
+void HAL_LTDC_ReloadEventCallback(LTDC_HandleTypeDef *hltdc)
+//void HAL_LTDC_LineEventCallback(LTDC_HandleTypeDef *hltdc)
 {
-  UNUSED(hdma2d);
+  while((hltdc->Instance->CDSR & LTDC_CDSR_VSYNCS) == 0);
+
+  is_draw_available = true;
+
+  if(en_double_buffering == true)
+  {
+    if(hltdc->LayerCfg[_DEF_LCD_LAYER1].FBStartAdress == _HW_DEF_LCD_ADDR_LAYER1_START)
+    {
+      drvLcdSetLayerAddr(_DEF_LCD_LAYER1, _HW_DEF_LCD_ADDR_LAYER2_START);
+      drvLcdSetLayerAddr(_DEF_LCD_LAYER2, _HW_DEF_LCD_ADDR_LAYER1_START);
+    }
+    else
+    {
+      drvLcdSetLayerAddr(_DEF_LCD_LAYER1, _HW_DEF_LCD_ADDR_LAYER1_START);
+      drvLcdSetLayerAddr(_DEF_LCD_LAYER2, _HW_DEF_LCD_ADDR_LAYER2_START);
+    }
+
+    en_double_buffering = false;
+  }
+
+  /* Enable Line Interrupt*/
+  //HAL_LTDC_ProgramLineEvent(hltdc, OTM8009A_800X480_HEIGHT);
+  HAL_LTDC_Reload(hltdc, LTDC_RELOAD_VERTICAL_BLANKING);
 }
+
 
 
 /**************************** LINK OTM8009A (Display driver) ******************/
