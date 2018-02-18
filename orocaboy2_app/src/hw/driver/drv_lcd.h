@@ -115,35 +115,27 @@
 
 #endif
 
-err_code_t drvLcdInit(uint8_t orientation);
+err_code_t drvLcdInit(void);
 void       drvLcdReset(void);
-err_code_t drvLcdInitLayer(uint16_t layer_idx, uint32_t fb_addr);
 
-err_code_t drvLcdSelectLayer(uint32_t layer_idx);
 
 uint32_t   drvLcdReadPixel(uint16_t x_pos, uint16_t y_pos);
 void       drvLcdDrawPixel(uint16_t x_pos, uint16_t y_pos, uint32_t rgb_code);
 void       drvLcdClear(uint32_t rgb_code);
-void       drvLcdCopyLayer(uint32_t src_index, uint32_t dst_index);
 
-void drvLcdFillRect(uint16_t x_pos, uint16_t y_pos, uint16_t width, uint16_t height, uint16_t rgb_code);
+
+void       drvLcdFillRect(uint16_t x_pos, uint16_t y_pos, uint16_t width, uint16_t height, uint16_t rgb_code);
 
 bool       drvLcdDrawAvailable(void);
-void       drvLcdOnDoubleBuffering(bool enable);
-
-err_code_t drvLcdSetLayerAddr(uint32_t layer_idx, uint32_t addr);
-err_code_t drvLcdSetLayerWindow(uint16_t layer_idx, uint16_t x_pos, uint16_t y_pos, uint16_t width, uint16_t height);
-err_code_t drvLcdSetLayerVisible(uint32_t layer_idx, uint8_t state);
-
-err_code_t drvLcdSetTransparency(uint32_t layer_idx, uint8_t transparency);
+void       drvLcdRequestDraw(void);
 
 void       drvLcdDisplayOff(void);
 void       drvLcdDisplayOn(void);
 
-uint32_t   drvLcdGetXSize(void);
-uint32_t   drvLcdGetYSize(void);
-void       drvLcdSetXSize(uint32_t image_width_pixels);
-void       drvLcdSetYSize(uint32_t image_height_pixels);
+uint32_t   drvLcdGetWidth(void);
+uint32_t   drvLcdGetHeight(void);
+
+void       drvLcdCopyLineBuffer(uint16_t x_pos, uint16_t y_pos, uint8_t *p_data, uint32_t length);
 
 
 #ifdef __cplusplus

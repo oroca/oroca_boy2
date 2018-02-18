@@ -142,7 +142,8 @@ err_code_t drvTsInit(uint16_t x_size, uint16_t y_size)
     }
     else
     {
-      ts_orientation = TS_SWAP_XY | TS_SWAP_Y;
+      //ts_orientation = TS_SWAP_XY | TS_SWAP_Y;
+      ts_orientation = TS_SWAP_XY | TS_SWAP_X;;
     }
 
     if(ts_status == OK)

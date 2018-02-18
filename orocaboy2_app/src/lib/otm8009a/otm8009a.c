@@ -159,6 +159,9 @@ const uint8_t ShortRegData51[] = {0xC6, 0x06};
   * @}
   */
 
+void OTM8009A_IO_Delay(uint32_t data);
+
+
 /* Private macros ------------------------------------------------------------*/
 /* Private functions ---------------------------------------------------------*/
 /** @defgroup OTM8009A_Exported_Variables
@@ -435,6 +438,12 @@ uint8_t OTM8009A_Init(uint32_t ColorCoding, uint32_t orientation)
   return 0;
 }
 
+extern void delay(uint32_t delay_ms);
+
+void OTM8009A_IO_Delay(uint32_t data)
+{
+  delay(data);
+}
 /**
   * @}
   */

@@ -74,14 +74,15 @@ void drawLogo(void)
   uint32_t step;
 
 
-  lcdSelectLayer(_DEF_LCD_LAYER2);
 
-  x_offset = (lcdGetXSize() - LOGO_WIDTH ) / 2;
-  y_offset = (lcdGetYSize() - LOGO_HEIGHT) / 2;
+  x_offset = (800 - LOGO_WIDTH ) / 2;
+  y_offset = (480 - LOGO_HEIGHT) / 2;
 
 
   for (step = 0; step <= 200; step += 8)
   {
+    while(lcdDrawAvailable() == false);
+
     lcdClear(0x0000);
     for(uint16_t x = 0; x < LOGO_WIDTH; x++)
     {
@@ -90,11 +91,11 @@ void drawLogo(void)
         lcdDrawPixel(x + x_offset, y + y_offset + 199-step, (uint32_t)oroca_img[y*LOGO_WIDTH + x]);
       }
     }
-    lcdCopyLayer(_DEF_LCD_LAYER2, _DEF_LCD_LAYER1);
+    lcdRequestDraw();
   }
   delay(1000);
-  lcdClear(0x0000);
-  lcdCopyLayer(_DEF_LCD_LAYER2, _DEF_LCD_LAYER1);
+  //lcdClear(0x0000);
+  //lcdCopyLayer(_DEF_LCD_LAYER2, _DEF_LCD_LAYER1);
 
 }
 
