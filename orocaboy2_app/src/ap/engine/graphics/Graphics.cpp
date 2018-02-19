@@ -955,7 +955,7 @@ void Graphics::drawChar(int16_t x, int16_t y, unsigned char c, uint8_t size) {
 		int8_t   xo = pgm_read_byte(&glyph->xOffset),
 					 yo = pgm_read_byte(&glyph->yOffset);
 
-		xa = xa;
+		//xa = xa;
 
 		uint8_t  xx, yy, bits=0, bit = 0;
 		int16_t  xo16=0, yo16=0;
