@@ -428,7 +428,7 @@ void drvLcdHwInit(void)
   GPIO_Init_Structure.Alternate = GPIO_AF13_DSI;
   HAL_GPIO_Init(GPIOJ, &GPIO_Init_Structure);
 
-  drvLcdFillBuffer((uint32_t *)LCD_LAYER_FRAME_BUFFER, XSIZE_PHYS, YSIZE_PHYS, 0, 0xFFFF);
+  drvLcdFillBuffer((uint32_t *)LCD_LAYER_FRAME_BUFFER, XSIZE_PHYS, YSIZE_PHYS, 0, 0x0000);
 
   /* Refresh the display */
   HAL_DSI_Refresh(&lcd_hw.hdsi);
