@@ -1,0 +1,8 @@
+/boot.o
+/cmd.o
+/download.o
+/main.o
+/orocaboy2_loader
+/uart_linux.o
+/util.o
+/util_linux.o
