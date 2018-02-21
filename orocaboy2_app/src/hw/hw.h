@@ -22,6 +22,7 @@
 #include "vcp.h"
 #include "led.h"
 #include "button.h"
+#include "exti.h"
 #include "timer.h"
 #include "uart.h"
 #include "flash.h"

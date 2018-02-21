@@ -171,16 +171,6 @@ void OTG_HS_IRQHandler(void)
   HAL_PCD_IRQHandler(&hpcd);
 }
 
-/**
-  * @brief  This function handles External line 0 interrupt request.
-  * @param  None
-  * @retval None
-  */
-void EXTI0_IRQHandler(void)
-{
-  HAL_GPIO_EXTI_IRQHandler(GPIO_PIN_0);
-}
-
 
 
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/

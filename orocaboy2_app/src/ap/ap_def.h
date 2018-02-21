@@ -17,7 +17,7 @@
 #define _DEF_APP_VER_STR                      "OROCABOY2 APP V1.0.0 180208R1"
 #define _DEF_APP_VER_NUM                      {1, 0, 0}
 
-
+#define _USE_CMD
 
 
 #endif /* AP_DEF_H_ */

@@ -33,7 +33,7 @@
 ENTRY(Reset_Handler)
 
 /* Highest address of the user mode stack */
-_estack = 0x20050000;    /* end of RAM */
+_estack = 0x20048000;    /* end of RAM */
 /* Generate a link error if heap and stack don't fit into RAM */
 _Min_Stack_Size = 0x1000; /* required amount of stack */
 
@@ -51,9 +51,12 @@ MEMORY
 BOOT    (rx)    : ORIGIN = 0x08020200, LENGTH = 1K
 VER_STR (rx)    : ORIGIN = 0x08020600, LENGTH = 256
 VER_NUM (rx)    : ORIGIN = 0x08020700, LENGTH = 256
-FLASH (rx)      : ORIGIN = 0x08020800, LENGTH = 1918K
+FLASH (rx)      : ORIGIN = 0x08020800, LENGTH = 894K
+               /* ORIGIN = 0x08100000, LENGTH = 512K : Reserved */
+               /* ORIGIN = 0x08180000, LENGTH = 512K : GAME FLASH */
 
-RAM (xrw)       : ORIGIN = 0x20000000, LENGTH = 320K
+RAM (xrw)       : ORIGIN = 0x20000000, LENGTH = 288K
+RAM_API (xrw)   : ORIGIN = 0x2004FC00, LENGTH = 1K  
 CCMRAM (rw)     : ORIGIN = 0x10000000, LENGTH = 64K
 
 SDRAM_IMAGE		: ORIGIN = 0xC0000000, LENGTH = 8192K
@@ -173,7 +176,6 @@ SECTIONS
     . = ALIGN(4);
     _eccmram = .;       /* create a global symbol at ccmram end */
   } >CCMRAM AT> FLASH
-
   
   /* Uninitialized data section */
   . = ALIGN(4);

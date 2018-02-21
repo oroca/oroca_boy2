@@ -55,6 +55,8 @@
 #define _USE_HW_TS
 #define _USE_HW_SD
 #define _USE_HW_FATFS
+#define _USE_HW_EXTI
+#define _USE_HW_CMDIF_EXTI
 
 
 #define _HW_DEF_CMDIF_LIST_MAX  16
@@ -78,6 +80,7 @@
 #define _HW_DEF_SW_TIMER_MAX              8
 #define _HW_DEF_ADC_CH_MAX                4
 #define _HW_DEF_I2C_CH_MAX                1
+#define _HW_DEF_EXTI_CH_MAX               1
 
 #define _HW_DEF_RTOS_MEM_SIZE(x)              ((x)/4)
 
@@ -88,11 +91,13 @@
 #define _HW_DEF_LCD_ADDR_LAYER1_START         _HW_DEF_SDRAM_ADDR_START
 #define _HW_DEF_LCD_ADDR_LAYER2_START         (_HW_DEF_SDRAM_ADDR_START + (800*480*4))
 
-#define _HW_DEF_FLASH_ADDR_APP_LENGTH         ((2048 - 128)*1024)
-#define _HW_DEF_FLASH_ADDR_APP_START          0x08020000
-#define _HW_DEF_FLASH_ADDR_APP_END            (_HW_DEF_FLASH_ADDR_APP_START + _HW_DEF_FLASH_ADDR_APP_LENGTH)
+#define _HW_DEF_FLASH_ADDR_GAME_LENGTH        (512*1024)
+#define _HW_DEF_FLASH_ADDR_GAME_START         0x08180000
+#define _HW_DEF_FLASH_ADDR_GAME_END           (_HW_DEF_FLASH_ADDR_GAME_START + _HW_DEF_FLASH_ADDR_GAME_LENGTH)
 
 #define _HW_DEF_CMD_MAX_DATA_LENGTH           1024
+
+#define _HW_DEF_GAME_API_ADDR                 0x2004FC00
 
 
 

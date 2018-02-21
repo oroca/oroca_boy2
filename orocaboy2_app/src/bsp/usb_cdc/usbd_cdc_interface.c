@@ -99,7 +99,7 @@ volatile bool usb_rx_full = false;
 
 /* USB handler declaration */
 extern USBD_HandleTypeDef  USBD_Device;
-extern PCD_HandleTypeDef   hpcd;
+//extern PCD_HandleTypeDef   hpcd;
 
 /* Private function prototypes -----------------------------------------------*/
 static int8_t CDC_Itf_Init     (void);
@@ -207,6 +207,7 @@ static int8_t CDC_Itf_Control (uint8_t cmd, uint8_t* pbuf, uint16_t length)
     {
       CDC_Reset_Status = 1;
     }
+
     break;
 
   case CDC_GET_LINE_CODING:
@@ -305,6 +306,7 @@ static int8_t CDC_Itf_Receive(uint8_t* Buf, uint32_t *Len)
 {
   uint32_t i;
   uint32_t rx_buf_length;
+  uint32_t str_len;
 
 
   for( i=0; i<*Len; i++ )
@@ -322,7 +324,7 @@ static int8_t CDC_Itf_Receive(uint8_t* Buf, uint32_t *Len)
 
   if( CDC_Reset_Status == 1 )
   {
-    uint32_t str_len = strlen(JUMP_BOOT_STR);
+    str_len = strlen(JUMP_BOOT_STR);
     CDC_Reset_Status = 0;
 
     if( *Len >= str_len )
