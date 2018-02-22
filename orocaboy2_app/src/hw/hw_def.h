@@ -50,6 +50,7 @@
 //#define _USE_HW_ADC
 #define _USE_HW_GPIO
 #define _USE_HW_CMDIF
+#define _USE_HW_AUDIO
 #define _USE_HW_SDRAM
 #define _USE_HW_LCD
 #define _USE_HW_TS
