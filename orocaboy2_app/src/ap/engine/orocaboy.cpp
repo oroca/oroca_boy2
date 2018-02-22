@@ -27,7 +27,7 @@ Authors:
 // a 3x5 font table
 extern const uint8_t font3x5[];
 
-
+namespace Gamebuino_Meta {
 
 long random( long howbig )
 {
@@ -52,7 +52,7 @@ long random( long howsmall, long howbig )
 }
 
 
-namespace Gamebuino_Meta {
+
 	
 
 

@@ -35,14 +35,8 @@ ENTRY(Reset_Handler)
 /* Highest address of the user mode stack */
 _estack = 0x20048000;    /* end of RAM */
 /* Generate a link error if heap and stack don't fit into RAM */
+_Min_Heap_Size = 0x1000;      /* required amount of heap  */
 _Min_Stack_Size = 0x1000; /* required amount of stack */
-
-/*_Min_Heap_Size = 0x1000;*/      /* required amount of heap  */
-
-/* Use whole external SDRAM for heap */
-__heap_start = 0xC0800000;
-__heap_limit = 0xC1000000;
-
 
 /* Specify the memory areas */
 MEMORY
@@ -61,7 +55,6 @@ CCMRAM (rw)     : ORIGIN = 0x10000000, LENGTH = 64K
 
 SDRAM_IMAGE		: ORIGIN = 0xC0000000, LENGTH = 8192K
 SDRAM_BUFFER	: ORIGIN = 0xC0800000, LENGTH = 8192K
-
 }
 
 /* Define output sections */
@@ -176,6 +169,7 @@ SECTIONS
     . = ALIGN(4);
     _eccmram = .;       /* create a global symbol at ccmram end */
   } >CCMRAM AT> FLASH
+
   
   /* Uninitialized data section */
   . = ALIGN(4);
@@ -193,14 +187,15 @@ SECTIONS
     __bss_end__ = _ebss;
   } >RAM
 
- /* User_stack section, used to check that there is enough RAM left */
-  ._user_stackd :
+  /* User_heap_stack section, used to check that there is enough RAM left */
+  ._user_heap_stack :
   {
-    . = ALIGN(8);
+    . = ALIGN(4);
     PROVIDE ( end = . );
     PROVIDE ( _end = . );
+    . = . + _Min_Heap_Size;
     . = . + _Min_Stack_Size;
-    . = ALIGN(8);
+    . = ALIGN(4);
   } >RAM
 
   

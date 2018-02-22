@@ -5,9 +5,11 @@
 
 #include "gfxfont.h"
 
-
+#ifdef ARDUINO_OROCABOY2
+#include "Print.h"
+#else
 #include "arduino/Print.h"
-
+#endif
 
 namespace Gamebuino_Meta {
 

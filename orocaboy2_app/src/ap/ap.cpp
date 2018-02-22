@@ -11,24 +11,42 @@
 #include "rtos.h"
 #include "image/oroca_logo.h"
 #include "engine/orocaboy.h"
+#include "driver/drv_lcd.h"
 
-#include "engine/graphics/Fonts/FreeSans18pt7b.h"
 
 
 const volatile __attribute__((section(".version_str"))) uint8_t fw_version_str[256] = _DEF_APP_VER_STR;
 const volatile __attribute__((section(".version_num"))) uint8_t fw_version_num[256] = _DEF_APP_VER_NUM;
 
-typedef struct
+bool checkGameStopFlag(void);
+
+
+
+game_hw_t      game_hw
 {
-  bool       (*checkGameStopFlag)(void);
-  uint32_t   (*millis)(void);
-  uint32_t   (*micros)(void);
-  void       (*delay)(uint32_t data);
-  void       (*ledToggle)(uint8_t ch);
-} game_api_t;
+  checkGameStopFlag,
+  millis,
+  micros,
+  delay,
+  ledToggle,
+
+  lcdDrawAvailable,
+  drvLcdCopyLineBuffer,
+  lcdRequestDraw,
+  memFree,
+  memMalloc
+};
+game_hw_t   *p_game_hw = &game_hw;
+//game_hw_t **pp_game_hw = (game_hw_t **)_HW_DEF_GAME_API_ADDR;
+
+
 
 game_api_t *p_game_api = (game_api_t *)_HW_DEF_GAME_API_ADDR;
+
+
 static bool game_stop_flag = false;
+
+
 
 //-- External Variables
 //
@@ -41,8 +59,10 @@ void callbackExti(void *arg);
 bool checkGameStopFlag(void);
 
 
+
 //-- External Functions
 extern void swtimerISR(void);
+
 
 
 void apInit(void)
@@ -55,11 +75,8 @@ void apInit(void)
 
   extiAttachInterrupt(_DEF_EXTI1, _DEF_EXTI_FALLING, callbackExti, NULL);
 
-  p_game_api->checkGameStopFlag = checkGameStopFlag;
-  p_game_api->delay  = delay;
-  p_game_api->micros = micros;
-  p_game_api->millis = millis;
-  p_game_api->ledToggle = ledToggle;
+
+  p_game_api->game_hw = *p_game_hw;
 
   drawLogo();
 }
@@ -100,12 +117,14 @@ void apMain(void)
 
         excuteGame();
       }
-      //gameTest();
+    }
+
+    if (tsIsDetected() > 0)
+    {
+      gameTest();
     }
   }
 }
-
-
 
 void drawLogo(void)
 {

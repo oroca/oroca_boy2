@@ -25,8 +25,8 @@ as well as Adafruit raw 1.8" TFT display
 #include "DisplayLcd.h"
 #include "Image.h"
 #include "Graphics.h"
-#include "lcd.h"
-#include "driver/drv_lcd.h"
+//#include "lcd.h"
+//#include "driver/drv_lcd.h"
 #include "config.h"
 
 uint32_t draw_time;
@@ -227,8 +227,8 @@ void DisplayLcd::drawImage(int16_t x, int16_t y, Image& img, int16_t w2, int16_t
 			memcpy(&preBufferLine[w2], preBufferLine, w2 * 2); //double the line on the second half of the buffer
 
 			uint16_t line = 0;
-
-			while(lcdDrawAvailable() == false);
+      
+			while(p_game_hw->lcdDrawAvailable() == false);
 
 			//start sending lines and processing them in parallel using DMA
 			for (uint16_t j = 1; j < h; j ++) { //vertical coordinate in source image, start from the second line
@@ -238,8 +238,8 @@ void DisplayLcd::drawImage(int16_t x, int16_t y, Image& img, int16_t w2, int16_t
 				preBufferLine = sendBufferLine;
 				sendBufferLine = temp;
 
-
-				drvLcdCopyLineBuffer((uint16_t)0, (uint16_t)(line*2), (uint8_t *)sendBufferLine, (uint32_t)(_width * 2));
+        // TODO:드라이버 추가 
+				p_game_hw->drvLcdCopyLineBuffer((uint16_t)0, (uint16_t)(line*2), (uint8_t *)sendBufferLine, (uint32_t)(_width * 2));
 				line++;
 
 				//prepare the next line while the current one is being transferred
@@ -250,10 +250,10 @@ void DisplayLcd::drawImage(int16_t x, int16_t y, Image& img, int16_t w2, int16_t
 				memcpy(&preBufferLine[w2], preBufferLine, w2 * 2); //double the line on the second half of the buffer
 			}
 
-      drvLcdCopyLineBuffer((uint16_t)0, (uint16_t)(line*2), (uint8_t *)preBufferLine, (uint32_t)(_width * 2));
+      p_game_hw->drvLcdCopyLineBuffer((uint16_t)0, (uint16_t)(line*2), (uint8_t *)preBufferLine, (uint32_t)(_width * 2));
       line++;
 
-      lcdRequestDraw();
+      p_game_hw->lcdRequestDraw();
 
 	    draw_time = micros() - pre_time;
 			return;
