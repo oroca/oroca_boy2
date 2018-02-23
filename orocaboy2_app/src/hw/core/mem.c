@@ -44,7 +44,7 @@ void memInit(uint32_t addr, uint32_t length)
   __heap_limit = addr + length;
 }
 
-void *memMalloc(size_t size)
+void *memMalloc(uint32_t size)
 {
   return malloc_(size);
 }

@@ -22,7 +22,7 @@ bool checkGameStopFlag(void);
 
 
 
-game_hw_t      game_hw
+game_hw_t game_hw
 {
   checkGameStopFlag,
   millis,
@@ -36,11 +36,8 @@ game_hw_t      game_hw
   memFree,
   memMalloc
 };
-game_hw_t   *p_game_hw = &game_hw;
-//game_hw_t **pp_game_hw = (game_hw_t **)_HW_DEF_GAME_API_ADDR;
 
-
-
+game_hw_t  *p_game_hw  = &game_hw;
 game_api_t *p_game_api = (game_api_t *)_HW_DEF_GAME_API_ADDR;
 
 
@@ -76,7 +73,9 @@ void apInit(void)
   extiAttachInterrupt(_DEF_EXTI1, _DEF_EXTI_FALLING, callbackExti, NULL);
 
 
-  p_game_api->game_hw = *p_game_hw;
+  p_game_api->p_game_hw = &game_hw;
+  p_game_api->game_hw_addr = (uint32_t)&game_hw;
+  p_game_api->debug = 0;
 
   drawLogo();
 }

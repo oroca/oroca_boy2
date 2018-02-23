@@ -88,8 +88,8 @@ void loaderCmdReadVersion(cmd_t *p_cmd)
   uint8_t data[8] = {0, };
   uint32_t i = 0;
 
-  data[i++] = ((uint8_t *) _DEF_APP_VER_NUM)[0];
-  data[i++] = ((uint8_t *) _DEF_APP_VER_NUM)[0];
+  data[i++] = 0;
+  data[i++] = 0;
 
   cmdSendResp(p_cmd, OK, data, i);
 }

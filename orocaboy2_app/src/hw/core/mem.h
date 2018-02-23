@@ -22,7 +22,7 @@
 
 
 void  memInit(uint32_t addr, uint32_t length);
-void *memMalloc(size_t size);
+void *memMalloc(uint32_t size);
 void  memFree(void *ptr);
 
 
