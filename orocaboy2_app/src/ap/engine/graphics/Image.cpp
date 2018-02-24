@@ -46,7 +46,7 @@ void Frame_Handler::first() {
 uint32_t Frame_Handler::getBufferSizeWithFrames() {
 	return img->getBufferSize();
 }
-
+int a = 0;
 void Frame_Handler::allocateBuffer() {
 	uint32_t bytes = getBufferSizeWithFrames();
 	if (buf && (bytes <= bufferSize)) {
@@ -55,10 +55,10 @@ void Frame_Handler::allocateBuffer() {
 	}
 	if (buf && (uint32_t)buf >= 0x20000000) {
 		//free(buf);
-	  p_game_hw->memFree(buf);
+	  memFree(buf);
 	}
 	//if ((buf = (uint16_t *)malloc(bytes))) {  
-	if ((buf = (uint16_t *)p_game_hw->memMalloc(bytes))) {
+	if ((buf = (uint16_t *)memMalloc(bytes))) {
 		memset(buf, 0, bytes);
 		bufferSize = bytes;
 	} else {
@@ -183,7 +183,7 @@ void Image::init(const uint16_t* buffer, ColorMode col) {
   bufferSize = 0;
   if (_buffer && (uint32_t)_buffer >= 0x20000000) {
     //free(_buffer);
-    p_game_hw->memFree(_buffer);
+    memFree(_buffer);
   }
   uint16_t* buf = (uint16_t*)buffer;
   _width = *(buf++);
@@ -215,7 +215,7 @@ void Image::init(const uint16_t* buffer, ColorMode col, uint16_t _frames) {
   bufferSize = 0;
   if (_buffer && (uint32_t)_buffer >= 0x20000000) {
     //free(_buffer);
-    p_game_hw->memFree(_buffer);
+    memFree(_buffer);
   }
   uint16_t* buf = (uint16_t*)buffer;
   _width = *(buf++);
@@ -247,7 +247,7 @@ void Image::init(const uint16_t* buffer) {
 	bufferSize = 0;
 	if (_buffer && (uint32_t)_buffer >= 0x20000000) {
 		//free(_buffer);    
-	  p_game_hw->memFree(_buffer);
+	  memFree(_buffer);
 	}
 	uint16_t* buf = (uint16_t*)buffer;
 	_width = *(buf++);
@@ -287,7 +287,7 @@ void Image::init(const uint8_t* buffer) {
 	}
 	if (bufferSize && _buffer && (uint32_t)_buffer >= 0x20000000) {
 		//free(_buffer);    
-	  p_game_hw->memFree(_buffer);
+	  memFree(_buffer);
 	}
 	
 	uint8_t* buf = (uint8_t*)buffer;
@@ -322,7 +322,7 @@ Image::~Image() {
 	delete frame_handler;
 	if (_buffer && (uint32_t)_buffer >= 0x20000000) {
 		//free(_buffer);
-	  p_game_hw->memFree(_buffer);
+	  memFree(_buffer);
 		_buffer = 0;
 	}
 }

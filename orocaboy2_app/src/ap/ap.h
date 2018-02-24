@@ -19,7 +19,7 @@
 #include "cmdif/cmdif.h"
 #include "qbuffer.h"
 #include "cmd/cmd.h"
-#include "gameloader/gameloader.h"
+#include "util/gameloader/gameloader.h"
 
 
 

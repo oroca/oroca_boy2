@@ -11,37 +11,18 @@
 #include "rtos.h"
 #include "image/oroca_logo.h"
 #include "engine/orocaboy.h"
-#include "driver/drv_lcd.h"
 
 
 
 const volatile __attribute__((section(".version_str"))) uint8_t fw_version_str[256] = _DEF_APP_VER_STR;
 const volatile __attribute__((section(".version_num"))) uint8_t fw_version_num[256] = _DEF_APP_VER_NUM;
 
-bool checkGameStopFlag(void);
 
 
 
-game_hw_t game_hw
-{
-  checkGameStopFlag,
-  millis,
-  micros,
-  delay,
-  ledToggle,
-
-  lcdDrawAvailable,
-  drvLcdCopyLineBuffer,
-  lcdRequestDraw,
-  memFree,
-  memMalloc
-};
-
-game_hw_t  *p_game_hw  = &game_hw;
-game_api_t *p_game_api = (game_api_t *)_HW_DEF_GAME_API_ADDR;
 
 
-static bool game_stop_flag = false;
+
 
 
 
@@ -50,10 +31,8 @@ static bool game_stop_flag = false;
 uint8_t ap_flag_game_loader = 0;
 
 //-- Internal Functions
-void drawLogo(void);
+void drawLogo(uint8_t mode);
 void gameTest(void);
-void callbackExti(void *arg);
-bool checkGameStopFlag(void);
 
 
 
@@ -69,15 +48,7 @@ void apInit(void)
   timerStart(_DEF_TIMER2);
 
   gameloaderInit();
-
-  extiAttachInterrupt(_DEF_EXTI1, _DEF_EXTI_FALLING, callbackExti, NULL);
-
-
-  p_game_api->p_game_hw = &game_hw;
-  p_game_api->game_hw_addr = (uint32_t)&game_hw;
-  p_game_api->debug = 0;
-
-  drawLogo();
+  drawLogo(0);
 }
 
 
@@ -103,7 +74,7 @@ void apMain(void)
       ledToggle(_DEF_LED1);
     }
 
-    if (checkGameStopFlag() == true)
+    if (buttonGetPressed(0) == true && buttonGetPressedTime(0) > 50)
     {
       err = checkGame(GAME_TAG_TYPE_A, _HW_DEF_FLASH_ADDR_GAME_START);
 
@@ -114,7 +85,9 @@ void apMain(void)
         game_addr = *(uint32_t*)(p_tag->address);
         voidFuncPtr excuteGame = (voidFuncPtr)game_addr;
 
+        drawLogo(2);
         excuteGame();
+        drawLogo(1);
       }
     }
 
@@ -125,7 +98,7 @@ void apMain(void)
   }
 }
 
-void drawLogo(void)
+void drawLogo(uint8_t mode)
 {
   uint32_t x_offset;
   uint32_t y_offset;
@@ -146,15 +119,32 @@ void drawLogo(void)
     {
       for(uint16_t y = 0; y < LOGO_HEIGHT; y++)
       {
-        lcdDrawPixel(x + x_offset, y + y_offset + 199-step, (uint32_t)oroca_img[y*LOGO_WIDTH + x]);
+        if (mode == 0)
+        {
+          lcdDrawPixel(x + x_offset, y + y_offset + 199-step, (uint32_t)oroca_img[y*LOGO_WIDTH + x]);
+        }
+        else if (mode == 1)
+        {
+          lcdDrawPixel(x + x_offset, y + y_offset + step - 200, (uint32_t)oroca_img[y*LOGO_WIDTH + x]);
+        }
+        else
+        {
+          lcdDrawPixel(x + x_offset, y + y_offset - step, (uint32_t)oroca_img[y*LOGO_WIDTH + x]);
+        }
       }
     }
     lcdRequestDraw();
   }
-  delay(1000);
+  //delay(1000);
   //lcdClear(0x0000);
   //lcdCopyLayer(_DEF_LCD_LAYER2, _DEF_LCD_LAYER1);
 
+  if (mode == 2)
+  {
+    while(lcdDrawAvailable() == false);
+    lcdClear(0x0000);
+    lcdRequestDraw();
+  }
 }
 
 
@@ -253,20 +243,6 @@ void gameTest(void)
   }
 }
 
-
-
-
-void callbackExti(void *arg)
-{
-  UNUSED(arg);
-
-  game_stop_flag = !game_stop_flag;
-}
-
-bool checkGameStopFlag(void)
-{
-  return game_stop_flag;
-}
 
 
 

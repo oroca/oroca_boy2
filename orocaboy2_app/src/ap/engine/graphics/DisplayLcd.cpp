@@ -185,7 +185,7 @@ void bufferIndexLineDouble(uint16_t* preBufferLine, uint16_t* img_buffer, int16_
 	memcpy(&preBufferLine[w2], preBufferLine, w2 * 2); //double the line on the second half of the buffer
 }
 
-extern "C" void drvLcdCopyBuffer(uint16_t x_pos, uint16_t y_pos, uint8_t *p_data, uint32_t length);
+extern "C" void drvLcdCopyLineBuffer(uint16_t x_pos, uint16_t y_pos, uint8_t *p_data, uint32_t length);
 
 
 
@@ -228,7 +228,7 @@ void DisplayLcd::drawImage(int16_t x, int16_t y, Image& img, int16_t w2, int16_t
 
 			uint16_t line = 0;
       
-			while(p_game_hw->lcdDrawAvailable() == false);
+			while(lcdDrawAvailable() == false);
 
 			//start sending lines and processing them in parallel using DMA
 			for (uint16_t j = 1; j < h; j ++) { //vertical coordinate in source image, start from the second line
@@ -238,8 +238,7 @@ void DisplayLcd::drawImage(int16_t x, int16_t y, Image& img, int16_t w2, int16_t
 				preBufferLine = sendBufferLine;
 				sendBufferLine = temp;
 
-        // TODO:드라이버 추가 
-				p_game_hw->drvLcdCopyLineBuffer((uint16_t)0, (uint16_t)(line*2), (uint8_t *)sendBufferLine, (uint32_t)(_width * 2));
+				drvLcdCopyLineBuffer((uint16_t)0, (uint16_t)(line*2), (uint8_t *)sendBufferLine, (uint32_t)(_width * 2));
 				line++;
 
 				//prepare the next line while the current one is being transferred
@@ -250,10 +249,10 @@ void DisplayLcd::drawImage(int16_t x, int16_t y, Image& img, int16_t w2, int16_t
 				memcpy(&preBufferLine[w2], preBufferLine, w2 * 2); //double the line on the second half of the buffer
 			}
 
-      p_game_hw->drvLcdCopyLineBuffer((uint16_t)0, (uint16_t)(line*2), (uint8_t *)preBufferLine, (uint32_t)(_width * 2));
+      drvLcdCopyLineBuffer((uint16_t)0, (uint16_t)(line*2), (uint8_t *)preBufferLine, (uint32_t)(_width * 2));
       line++;
 
-      p_game_hw->lcdRequestDraw();
+      lcdRequestDraw();
 
 	    draw_time = micros() - pre_time;
 			return;
