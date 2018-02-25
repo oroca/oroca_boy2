@@ -25,7 +25,7 @@ cmd_t cmd_loader_ch1;
 
 loader_t boot_tbl[] =
 {
-    {&cmd_loader_ch1, _DEF_UART1, 1000000},
+    {&cmd_loader_ch1, _DEF_UART1, 57600},
     {NULL, 0, 0}
 };
 

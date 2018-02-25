@@ -12,18 +12,14 @@
 #include "image/oroca_logo.h"
 #include "engine/orocaboy.h"
 
+#define MODE_GAME_LOADER  0
+#define MODE_CMDIF        1
+
+#define MODE_BUTTON       _DEF_BUTTON1
 
 
 const volatile __attribute__((section(".version_str"))) uint8_t fw_version_str[256] = _DEF_APP_VER_STR;
 const volatile __attribute__((section(".version_num"))) uint8_t fw_version_num[256] = _DEF_APP_VER_NUM;
-
-
-
-
-
-
-
-
 
 
 //-- External Variables
@@ -39,6 +35,7 @@ void gameTest(void);
 //-- External Functions
 extern void swtimerISR(void);
 
+static uint8_t app_mode = MODE_GAME_LOADER;
 
 
 void apInit(void)
@@ -60,21 +57,22 @@ void apMain(void)
   game_tag_type_a_t *p_tag;
   err_code_t err;
 
-
-
   pre_time = millis();
   while(1)
   {
-    //cmdifMain();
-    gameloaderProcess();
-
-    if (millis()-pre_time >= 500)
+    switch(app_mode)
     {
-      pre_time = millis();
-      ledToggle(_DEF_LED1);
+      case MODE_GAME_LOADER :
+        gameloaderProcess();
+        break;
+
+      case MODE_CMDIF :
+        cmdifMain();
+        break;
     }
 
-    if (buttonGetPressed(0) == true && buttonGetPressedTime(0) > 50)
+    if (buttonGetReleased(MODE_BUTTON) == true
+        && buttonGetPressedTime(MODE_BUTTON) > 100 && buttonGetPressedTime(MODE_BUTTON) < 1000)
     {
       err = checkGame(GAME_TAG_TYPE_A, _HW_DEF_FLASH_ADDR_GAME_START);
 
@@ -91,12 +89,36 @@ void apMain(void)
       }
     }
 
-    if (tsIsDetected() > 0)
+    if (buttonGetReleased(MODE_BUTTON) == true && buttonGetPressedTime(MODE_BUTTON) > 2000)
+    {
+      buttonResetTime(MODE_BUTTON);
+
+      if(app_mode == MODE_GAME_LOADER)
+      {
+        app_mode = MODE_CMDIF;
+      }
+      else if(app_mode == MODE_CMDIF)
+      {
+        app_mode = MODE_GAME_LOADER;
+      }
+    }
+
+    if (tsIsDetected() == 2)
     {
       gameTest();
     }
+
+    if (millis()-pre_time >= 500)
+    {
+      pre_time = millis();
+      ledToggle(_DEF_LED1);
+    }
   }
 }
+
+
+
+
 
 void drawLogo(uint8_t mode)
 {

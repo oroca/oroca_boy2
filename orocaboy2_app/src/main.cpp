@@ -58,7 +58,7 @@ static void mainInit(void)
       그래서 임시로 newlib 사용으로 변경 하였음. 아래 링크 찹조하여 바꿀 필요 있음.
      https://mcuoneclipse.com/2017/07/02/using-freertos-with-newlib-and-newlib-nano/
      */
-  //cmdifBegin(_DEF_UART1, 57600);
+  cmdifBegin(_DEF_UART1, 57600);
 }
 
 static void threadMain(void const *argument)
