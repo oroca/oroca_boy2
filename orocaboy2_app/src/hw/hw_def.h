@@ -72,6 +72,7 @@
 #define _USE_HW_CMDIF_TS
 #define _USE_HW_CMDIF_SD
 #define _USE_HW_CMDIF_FATFS
+#define _USE_HW_CMDIF_AUDIO
 
 
 #define _HW_DEF_LED_CH_MAX                4

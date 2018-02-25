@@ -31,6 +31,7 @@
 #include "sdram.h"
 #include "lcd.h"
 #include "ts.h"
+#include "audio.h"
 #include "sd.h"
 #include "mem.h"
 #include "fatfs/fatfs.h"

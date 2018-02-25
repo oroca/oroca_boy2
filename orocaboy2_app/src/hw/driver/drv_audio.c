@@ -41,8 +41,8 @@
 
 #define AUDIODATA_SIZE                      2   /* 16-bits audio data size */
 
-#define DEFAULT_OUTPUT_DEVICE OUTPUT_DEVICE_AUTO
-#define DEFAULT_OUTPUT_VOLUME 70
+#define DEFAULT_OUTPUT_DEVICE   OUTPUT_DEVICE_AUTO
+#define DEFAULT_OUTPUT_VOLUME   70
 
 AUDIO_DrvTypeDef          *audio_drv;
 SAI_HandleTypeDef         haudio_out_sai;
@@ -130,13 +130,19 @@ err_code_t drvAudioOutPlay(uint16_t* p_buf, uint32_t size)
 
   if(ret == OK)
   {
-    if (HAL_SAI_Transmit_DMA(&haudio_out_sai, (uint8_t*) p_buf, size/AUDIODATA_SIZE)!= HAL_OK)
+    if (HAL_SAI_Transmit_DMA(&haudio_out_sai, (uint8_t*)p_buf, size/AUDIODATA_SIZE) != HAL_OK)
     {
       ret = ERR_AUDIO;
     }
   }
 
   return ret;
+}
+
+//TODO : Add beep functions.
+err_code_t drvAudioOutBeep(uint32_t freq, uint32_t duration)
+{
+
 }
 
 err_code_t drvAudioOutPause(void)
@@ -264,7 +270,6 @@ err_code_t drvAudioOutSetMute(uint32_t cmd)
   return ret;
 }
 
-
 void    drvAudioOutChangeBuffer(uint16_t *p_data, uint16_t size)
 {
   HAL_SAI_Transmit_DMA(&haudio_out_sai, (uint8_t*) p_data, size);
@@ -325,10 +330,9 @@ void drvAudioOutChangeConfig(uint32_t audio_out_option)
 
 
 
-
 void DMA2_Stream3_IRQHandler(void)
 {
-  ;
+  HAL_DMA_IRQHandler(haudio_out_sai.hdmatx);
 }
 
 void HAL_SAI_TxCpltCallback(SAI_HandleTypeDef *hsai)
@@ -498,3 +502,101 @@ void  HAL_SAI_MspDeInit(SAI_HandleTypeDef *hsai)
   /* Disable SAI clock */
   __HAL_RCC_SAI1_CLK_DISABLE();
 }
+
+
+
+
+/*******************************************************************************
+                            LINK OPERATIONS
+*******************************************************************************/
+
+/********************************* LINK AUDIO *********************************/
+
+static I2C_HandleTypeDef hi2c;
+
+static void AUDIO_I2C_MspInit(void);
+
+void AUDIO_IO_Init(void)
+{
+  if(HAL_I2C_GetState(&hi2c) == HAL_I2C_STATE_RESET)
+  {
+    hi2c.Instance = I2C2;
+    hi2c.Init.ClockSpeed      = 100000;
+    hi2c.Init.DutyCycle       = I2C_DUTYCYCLE_2;
+    hi2c.Init.OwnAddress1     = 0;
+    hi2c.Init.AddressingMode  = I2C_ADDRESSINGMODE_7BIT;
+    hi2c.Init.DualAddressMode = I2C_DUALADDRESS_DISABLE;
+    hi2c.Init.OwnAddress2     = 0;
+    hi2c.Init.GeneralCallMode = I2C_GENERALCALL_DISABLE;
+    hi2c.Init.NoStretchMode   = I2C_NOSTRETCH_DISABLE;
+
+    AUDIO_I2C_MspInit();
+    HAL_I2C_Init(&hi2c);
+  }
+}
+
+void AUDIO_IO_DeInit(void)
+{
+
+}
+
+void AUDIO_IO_Write(uint8_t Addr, uint8_t Reg, uint8_t Value)
+{
+  HAL_I2C_Mem_Write(&hi2c, (uint16_t)Addr, (uint16_t) Reg, I2C_MEMADD_SIZE_8BIT, (uint8_t*)&Value, 1, 1000);
+}
+
+uint8_t AUDIO_IO_Read(uint8_t Addr, uint8_t Reg)
+{
+  uint8_t read_value = 0;
+
+  HAL_I2C_Mem_Read(&hi2c, (uint16_t)Addr, (uint16_t) Reg, I2C_MEMADD_SIZE_8BIT, (uint8_t*)&read_value, 1, 1000);
+
+  return read_value;
+}
+
+void AUDIO_IO_Delay(uint32_t Delay)
+{
+  HAL_Delay(Delay);
+}
+
+
+
+static void AUDIO_I2C_MspInit(void)
+{
+  GPIO_InitTypeDef  GPIO_InitStruct;
+
+  /*** Configure the GPIOs ***/
+  /* Enable GPIO clock */
+  __HAL_RCC_GPIOH_CLK_ENABLE();
+
+  /* Configure I2C Tx as alternate function */
+  GPIO_InitStruct.Pin = GPIO_PIN_4;
+  GPIO_InitStruct.Mode = GPIO_MODE_AF_OD;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FAST;
+  GPIO_InitStruct.Alternate = GPIO_AF4_I2C2;
+  HAL_GPIO_Init(GPIOH, &GPIO_InitStruct);
+
+  /* Configure I2C Rx as alternate function */
+  GPIO_InitStruct.Pin = GPIO_PIN_5;
+  HAL_GPIO_Init(GPIOH, &GPIO_InitStruct);
+
+  /*** Configure the I2C peripheral ***/
+  /* Enable I2C clock */
+  __HAL_RCC_I2C2_CLK_ENABLE();
+
+  /* Force the I2C peripheral clock reset */
+  __HAL_RCC_I2C2_FORCE_RESET();
+
+  /* Release the I2C peripheral clock reset */
+  __HAL_RCC_I2C2_RELEASE_RESET();
+
+  /* Enable and set I2C1 Interrupt to a lower priority */
+  HAL_NVIC_SetPriority(I2C2_EV_IRQn, 0x05, 0);
+  HAL_NVIC_EnableIRQ(I2C2_EV_IRQn);
+
+  /* Enable and set I2C1 Interrupt to a lower priority */
+  HAL_NVIC_SetPriority(I2C2_ER_IRQn, 0x05, 0);
+  HAL_NVIC_EnableIRQ(I2C2_ER_IRQn);
+}
+

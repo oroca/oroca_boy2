@@ -135,7 +135,7 @@ uint32_t cs43l22_Init(uint16_t DeviceAddr, uint16_t OutputDevice, uint8_t Volume
   uint32_t counter = 0;
   
   /* Initialize the Control interface of the Audio Codec */
-  //AUDIO_IO_Init();
+  AUDIO_IO_Init();
     
   /* Keep Codec powered OFF */
   counter += CODEC_IO_Write(DeviceAddr, CS43L22_REG_POWER_CTL1, 0x01);  
@@ -217,7 +217,7 @@ uint32_t cs43l22_Init(uint16_t DeviceAddr, uint16_t OutputDevice, uint8_t Volume
 void cs43l22_DeInit(void)
 {
   /* Deinitialize Audio Codec interface */
-  //AUDIO_IO_DeInit();
+  AUDIO_IO_DeInit();
 }
 
 /**
@@ -229,9 +229,9 @@ uint32_t cs43l22_ReadID(uint16_t DeviceAddr)
 {
   uint8_t Value;
   /* Initialize the Control interface of the Audio Codec */
-  //AUDIO_IO_Init();
+  AUDIO_IO_Init();
   
-  //Value = AUDIO_IO_Read(DeviceAddr, CS43L22_CHIPID_ADDR);
+  Value = AUDIO_IO_Read(DeviceAddr, CS43L22_CHIPID_ADDR);
   Value = (Value & CS43L22_ID_MASK);
   
   return((uint32_t) Value);
@@ -464,7 +464,7 @@ static uint8_t CODEC_IO_Write(uint8_t Addr, uint8_t Reg, uint8_t Value)
 {
   uint32_t result = 0;
   
-  //AUDIO_IO_Write(Addr, Reg, Value);
+  AUDIO_IO_Write(Addr, Reg, Value);
   
 #ifdef VERIFY_WRITTENDATA
   /* Verify that the data has been correctly written */  
