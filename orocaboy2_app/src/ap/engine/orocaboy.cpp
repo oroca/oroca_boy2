@@ -243,7 +243,7 @@ void Gamebuino::titleScreen() {
 
 void Gamebuino::titleScreen(const char* name, const char* logo) {
   display.fontSize = 1;
-  display.persistence = false;
+  //display.persistence = false;
 
   const char* msg = "\x15 to start";
   uint8_t w = display.fontWidth*strlen(msg)*display.fontSize;
@@ -262,7 +262,7 @@ void Gamebuino::titleScreen(const char* name, const char* logo) {
       uint8_t lh = logo[1];
       display.drawBitmap((display.width() - lw) / 2, (display.height() - lh) / 2, (uint8_t *)logo);
     }
-    display.setCursors(0, 12);
+    display.setCursor(0, 12);
     display.print(name);
 
     if ((frameCount % 32) < 20) {
@@ -273,7 +273,7 @@ void Gamebuino::titleScreen(const char* name, const char* logo) {
       display.setColor(Color::brown);
       display.fillRect(x - display.fontSize, y - display.fontSize, w + display.fontSize*2, h + display.fontSize);
       display.setColor(Color::white);
-      display.setCursors(x, y);
+      display.setCursor(x, y);
       display.print(msg);
     }
 
