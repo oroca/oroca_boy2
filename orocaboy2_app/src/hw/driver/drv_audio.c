@@ -72,6 +72,7 @@ err_code_t drvAudioOutInit(uint32_t audio_freq)
   haudio_out_sai.Init.Synchro = SAI_ASYNCHRONOUS;
   haudio_out_sai.Init.OutputDrive = SAI_OUTPUTDRIVE_ENABLE;
   haudio_out_sai.Init.FIFOThreshold = SAI_FIFOTHRESHOLD_1QF;
+  haudio_out_sai.Init.MonoStereoMode = SAI_MONOMODE;
 
   haudio_out_sai.FrameInit.FrameLength = 64;
   haudio_out_sai.FrameInit.ActiveFrameLength = 32;
@@ -88,6 +89,8 @@ err_code_t drvAudioOutInit(uint32_t audio_freq)
   {
     ret = ERR_AUDIO;
   }
+
+  __HAL_SAI_ENABLE(&haudio_out_sai);
 
   if(ret == OK)
   {
@@ -262,7 +265,7 @@ err_code_t drvAudioOutSetMute(uint32_t cmd)
     t_cmd = AUDIO_MUTE_ON;
   }
 
-  if(audio_drv->SetMute(AUDIO_I2C_ADDRESS, cmd) != 0)
+  if(audio_drv->SetMute(AUDIO_I2C_ADDRESS, t_cmd) != 0)
   {
     ret = ERR_AUDIO;
   }
@@ -400,6 +403,7 @@ void  HAL_SAI_MspInit(SAI_HandleTypeDef *hsai)
 
   /* Put CS43L2 codec reset high -----------------------------------*/
   __HAL_RCC_GPIOE_CLK_ENABLE();
+
   gpio_init_structure.Pin =  GPIO_PIN_2;
   gpio_init_structure.Mode = GPIO_MODE_OUTPUT_PP;
   gpio_init_structure.Pull = GPIO_NOPULL;
@@ -412,7 +416,6 @@ void  HAL_SAI_MspInit(SAI_HandleTypeDef *hsai)
 
   /* Enable GPIO clock */
   __HAL_RCC_GPIOG_CLK_ENABLE();
-  __HAL_RCC_GPIOE_CLK_ENABLE();
 
   /* CODEC_SAI pins configuration: MCK pin -----------------------------------*/
   gpio_init_structure.Pin =  GPIO_PIN_7;
@@ -464,8 +467,6 @@ void  HAL_SAI_MspInit(SAI_HandleTypeDef *hsai)
   /* SAI DMA IRQ Channel configuration */
   HAL_NVIC_SetPriority(DMA2_Stream3_IRQn, 5, 0);
   HAL_NVIC_EnableIRQ(DMA2_Stream3_IRQn);
-
-  __HAL_SAI_ENABLE(&haudio_out_sai);
 }
 
 
