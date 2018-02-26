@@ -71,35 +71,35 @@ void apMain(void)
         break;
     }
 
-    if (buttonGetReleased(MODE_BUTTON) == true
-        && buttonGetPressedTime(MODE_BUTTON) > 100 && buttonGetPressedTime(MODE_BUTTON) < 1000)
+    if (buttonGetReleasedEvent(MODE_BUTTON) == true)
     {
-      err = checkGame(GAME_TAG_TYPE_A, _HW_DEF_FLASH_ADDR_GAME_START);
-
-      if(err == OK)
+      if (buttonGetPressedTime(MODE_BUTTON) > 100 && buttonGetPressedTime(MODE_BUTTON) < 1000)
       {
-        p_tag = (game_tag_type_a_t*) (_HW_DEF_FLASH_ADDR_GAME_START);
+        err = checkGame(GAME_TAG_TYPE_A, _HW_DEF_FLASH_ADDR_GAME_START);
 
-        game_addr = *(uint32_t*)(p_tag->address);
-        voidFuncPtr excuteGame = (voidFuncPtr)game_addr;
+        if(err == OK)
+        {
+          p_tag = (game_tag_type_a_t*) (_HW_DEF_FLASH_ADDR_GAME_START);
 
-        drawLogo(2);
-        excuteGame();
-        drawLogo(1);
+          game_addr = *(uint32_t*)(p_tag->address);
+          voidFuncPtr excuteGame = (voidFuncPtr)game_addr;
+
+          drawLogo(2);
+          excuteGame();
+          drawLogo(1);
+        }
       }
-    }
 
-    if (buttonGetReleased(MODE_BUTTON) == true && buttonGetPressedTime(MODE_BUTTON) > 2000)
-    {
-      buttonResetTime(MODE_BUTTON);
-
-      if(app_mode == MODE_GAME_LOADER)
+      if (buttonGetPressedTime(MODE_BUTTON) > 2000)
       {
-        app_mode = MODE_CMDIF;
-      }
-      else if(app_mode == MODE_CMDIF)
-      {
-        app_mode = MODE_GAME_LOADER;
+        if(app_mode == MODE_GAME_LOADER)
+        {
+          app_mode = MODE_CMDIF;
+        }
+        else if(app_mode == MODE_CMDIF)
+        {
+          app_mode = MODE_GAME_LOADER;
+        }
       }
     }
 
