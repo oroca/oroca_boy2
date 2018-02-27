@@ -39,10 +39,11 @@
 /* To have an audio stream in speaker only SAI Slot 1 and Slot 3 must be activated */
 #define CODEC_AUDIOFRAME_SLOT_13                     SAI_SLOTACTIVE_1 | SAI_SLOTACTIVE_3
 
-#define AUDIODATA_SIZE                      2   /* 16-bits audio data size */
+#define AUDIODATA_SIZE        2   /* 16-bits audio data size */
 
 #define DEFAULT_OUTPUT_DEVICE   OUTPUT_DEVICE_AUTO
 #define DEFAULT_OUTPUT_VOLUME   70
+
 
 AUDIO_DrvTypeDef          *audio_drv;
 SAI_HandleTypeDef         haudio_out_sai;
@@ -56,11 +57,14 @@ err_code_t drvAudioOutInit(uint32_t audio_freq)
   uint16_t output_device = DEFAULT_OUTPUT_DEVICE;
   uint8_t volume = DEFAULT_OUTPUT_VOLUME;
 
+  __HAL_SAI_DISABLE(&haudio_out_sai);
+
   HAL_SAI_DeInit(&haudio_out_sai);
+
+  haudio_out_sai.Instance = SAI1_Block_A;
 
   drvAudioOutClockConfig(&haudio_out_sai, audio_freq, NULL);
 
-  haudio_out_sai.Instance = SAI1_Block_A;
   haudio_out_sai.Init.AudioFrequency = audio_freq;
   haudio_out_sai.Init.ClockSource = SAI_CLKSOURCE_PLLI2S;
   haudio_out_sai.Init.AudioMode = SAI_MODEMASTER_TX;
@@ -112,6 +116,8 @@ err_code_t drvAudioOutInit(uint32_t audio_freq)
     }
   }
 
+  drvAudioSelectOutDev(_DEF_AUDIO_HEADPHONE);
+
   return ret;
 }
 
@@ -142,10 +148,24 @@ err_code_t drvAudioOutPlay(uint16_t* p_buf, uint32_t size)
   return ret;
 }
 
-//TODO : Add beep functions.
-err_code_t drvAudioOutBeep(uint32_t freq, uint32_t duration)
+void drvAudioSelectOutDev(uint8_t dev)
 {
+  switch(dev)
+  {
+    case _DEF_AUDIO_HEADPHONE :
+      HAL_GPIO_WritePin(GPIOE, GPIO_PIN_3, GPIO_PIN_RESET);
+      break;
+    case _DEF_AUDIO_SPEAKER :
+      HAL_GPIO_WritePin(GPIOE, GPIO_PIN_3, GPIO_PIN_SET);
+      break;
+    default :
+      break;
+  }
+}
 
+void drvAudioOutBeep(uint8_t note, uint32_t duration_ms)
+{
+  cs43l22_Beep(AUDIO_I2C_ADDRESS, note, duration_ms);
 }
 
 err_code_t drvAudioOutPause(void)
@@ -173,7 +193,6 @@ err_code_t drvAudioOutResume(void)
 {
   err_code_t ret = OK;
 
-  /* Call the Audio Codec Pause/Resume function */
   if(audio_drv->Resume(AUDIO_I2C_ADDRESS) != 0)
   {
     ret =  ERR_AUDIO;
@@ -340,14 +359,12 @@ void DMA2_Stream3_IRQHandler(void)
 
 void HAL_SAI_TxCpltCallback(SAI_HandleTypeDef *hsai)
 {
-  /* Manage the remaining file size and new address offset: This function
-     should be coded by user (its prototype is already declared in stm32469i_discovery_audio.h) */
+	//BSP_AUDIO_OUT_ChangeBuffer((uint16_t*)&haudio.buff[0], AUDIO_OUT_BUFFER_SIZE /2);
 }
 
 void HAL_SAI_TxHalfCpltCallback(SAI_HandleTypeDef *hsai)
 {
-  /* Manage the remaining file size and new address offset: This function
-     should be coded by user (its prototype is already declared in stm32469i_discovery_audio.h) */
+	//BSP_AUDIO_OUT_ChangeBuffer((uint16_t*)&haudio.buff[AUDIO_OUT_BUFFER_SIZE /2], AUDIO_OUT_BUFFER_SIZE /2);
 }
 
 void HAL_SAI_ErrorCallback(SAI_HandleTypeDef *hsai)
@@ -399,16 +416,16 @@ static void  drvAudioOutClockConfig(SAI_HandleTypeDef *hsai, uint32_t audio_freq
 void  HAL_SAI_MspInit(SAI_HandleTypeDef *hsai)
 {
   static DMA_HandleTypeDef hdma_sai_tx;
-  GPIO_InitTypeDef  gpio_init_structure;
+  GPIO_InitTypeDef  GPIO_InitStruct;
 
   /* Put CS43L2 codec reset high -----------------------------------*/
   __HAL_RCC_GPIOE_CLK_ENABLE();
 
-  gpio_init_structure.Pin =  GPIO_PIN_2;
-  gpio_init_structure.Mode = GPIO_MODE_OUTPUT_PP;
-  gpio_init_structure.Pull = GPIO_NOPULL;
-  gpio_init_structure.Speed = GPIO_SPEED_HIGH;
-  HAL_GPIO_Init(GPIOE, &gpio_init_structure);
+  GPIO_InitStruct.Pin =  GPIO_PIN_2;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_HIGH;
+  HAL_GPIO_Init(GPIOE, &GPIO_InitStruct);
   HAL_GPIO_WritePin(GPIOE, GPIO_PIN_2, GPIO_PIN_SET);
 
   /* Enable SAI clock */
@@ -418,20 +435,20 @@ void  HAL_SAI_MspInit(SAI_HandleTypeDef *hsai)
   __HAL_RCC_GPIOG_CLK_ENABLE();
 
   /* CODEC_SAI pins configuration: MCK pin -----------------------------------*/
-  gpio_init_structure.Pin =  GPIO_PIN_7;
-  gpio_init_structure.Mode = GPIO_MODE_AF_PP;
-  gpio_init_structure.Pull = GPIO_NOPULL;
-  gpio_init_structure.Speed = GPIO_SPEED_HIGH;
-  gpio_init_structure.Alternate = GPIO_AF6_SAI1;
-  HAL_GPIO_Init(GPIOG, &gpio_init_structure);
+  GPIO_InitStruct.Pin =  GPIO_PIN_7;
+  GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_HIGH;
+  GPIO_InitStruct.Alternate = GPIO_AF6_SAI1;
+  HAL_GPIO_Init(GPIOG, &GPIO_InitStruct);
 
   /* CODEC_SAI pins configuration: FS, SCK, MCK and SD pins ------------------*/
-  gpio_init_structure.Pin = GPIO_PIN_4 | GPIO_PIN_5 | GPIO_PIN_6;
-  gpio_init_structure.Mode = GPIO_MODE_AF_PP;
-  gpio_init_structure.Pull = GPIO_NOPULL;
-  gpio_init_structure.Speed = GPIO_SPEED_HIGH;
-  gpio_init_structure.Alternate = GPIO_AF6_SAI1;
-  HAL_GPIO_Init(GPIOE, &gpio_init_structure);
+  GPIO_InitStruct.Pin = GPIO_PIN_4 | GPIO_PIN_5 | GPIO_PIN_6;
+  GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_HIGH;
+  GPIO_InitStruct.Alternate = GPIO_AF6_SAI1;
+  HAL_GPIO_Init(GPIOE, &GPIO_InitStruct);
 
   /* Enable the DMA clock */
   __HAL_RCC_DMA2_CLK_ENABLE();
@@ -472,7 +489,7 @@ void  HAL_SAI_MspInit(SAI_HandleTypeDef *hsai)
 
 void  HAL_SAI_MspDeInit(SAI_HandleTypeDef *hsai)
 {
-  GPIO_InitTypeDef  gpio_init_structure;
+  GPIO_InitTypeDef  GPIO_InitStruct;
 
   /* SAI DMA IRQ Channel deactivation */
   HAL_NVIC_DisableIRQ(DMA2_Stream3_IRQn);
@@ -490,14 +507,14 @@ void  HAL_SAI_MspDeInit(SAI_HandleTypeDef *hsai)
   HAL_GPIO_WritePin(GPIOE, GPIO_PIN_2, GPIO_PIN_RESET);
 
   /* Deactives CODEC_SAI pins FS, SCK, MCK and SD by putting them in input mode */
-  gpio_init_structure.Pin = GPIO_PIN_7;
-  HAL_GPIO_DeInit(GPIOG, gpio_init_structure.Pin);
+  GPIO_InitStruct.Pin = GPIO_PIN_7;
+  HAL_GPIO_DeInit(GPIOG, GPIO_InitStruct.Pin);
 
-  gpio_init_structure.Pin = GPIO_PIN_4 | GPIO_PIN_5 | GPIO_PIN_6;
-  HAL_GPIO_DeInit(GPIOE, gpio_init_structure.Pin);
+  GPIO_InitStruct.Pin = GPIO_PIN_4 | GPIO_PIN_5 | GPIO_PIN_6;
+  HAL_GPIO_DeInit(GPIOE, GPIO_InitStruct.Pin);
 
-  gpio_init_structure.Pin = GPIO_PIN_2;
-  HAL_GPIO_DeInit(GPIOE, gpio_init_structure.Pin);
+  GPIO_InitStruct.Pin = GPIO_PIN_2;
+  HAL_GPIO_DeInit(GPIOE, GPIO_InitStruct.Pin);
 
 
   /* Disable SAI clock */
@@ -519,6 +536,8 @@ static void AUDIO_I2C_MspInit(void);
 
 void AUDIO_IO_Init(void)
 {
+  GPIO_InitTypeDef  GPIO_InitStruct;
+
   if(HAL_I2C_GetState(&hi2c) == HAL_I2C_STATE_RESET)
   {
     hi2c.Instance = I2C2;
@@ -534,6 +553,13 @@ void AUDIO_IO_Init(void)
     AUDIO_I2C_MspInit();
     HAL_I2C_Init(&hi2c);
   }
+
+  /* Initialize SPKR/HP select pin */
+  GPIO_InitStruct.Pin =  GPIO_PIN_3;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_PULLDOWN;
+  GPIO_InitStruct.Speed = GPIO_SPEED_HIGH;
+  HAL_GPIO_Init(GPIOE, &GPIO_InitStruct);
 }
 
 void AUDIO_IO_DeInit(void)
@@ -600,4 +626,3 @@ static void AUDIO_I2C_MspInit(void)
   HAL_NVIC_SetPriority(I2C2_ER_IRQn, 0x05, 0);
   HAL_NVIC_EnableIRQ(I2C2_ER_IRQn);
 }
-

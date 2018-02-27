@@ -19,9 +19,7 @@ static SDRAM_HandleTypeDef hsdram;
 static FMC_SDRAM_TimingTypeDef timing;
 static FMC_SDRAM_CommandTypeDef cmd;
 
-static err_code_t drvSdramSendCmd(FMC_SDRAM_CommandTypeDef *SdramCmd);
-void    drvSdramInitSequence(uint32_t refresh_cnt);
-
+void drvSdramInitSequence(uint32_t refresh_cnt);
 void drvSdramMspInit(SDRAM_HandleTypeDef  *hsdram, void *Params);
 void drvSdramMspDeinit(SDRAM_HandleTypeDef  *hsdram, void *Params);
 
@@ -220,24 +218,6 @@ err_code_t drvSdramWriteDataUntilTimeout(uint32_t uwStartAddress, uint32_t *pDat
   }
 }
 
-
-
-/**
-  * @brief  Sends command to the SDRAM bank.
-  * @param  SdramCmd: Pointer to SDRAM command structure
-  * @retval HAL status : OK or ERR_SDRAM.
-  */
-static err_code_t drvSdramSendCmd(FMC_SDRAM_CommandTypeDef *SdramCmd)
-{
-  if(HAL_SDRAM_SendCommand(&hsdram, SdramCmd, DRV_SDRAM_TIMEOUT) != HAL_OK)
-  {
-    return ERR_SDRAM;
-  }
-  else
-  {
-    return OK;
-  }
-}
 
 /**
   * @brief  Handles SDRAM DMA transfer interrupt request.

@@ -58,7 +58,7 @@ void hwInit(void)
   sdramInit();
   lcdInit();
   tsInit();
-  audioInit(44100);
+  audioInit(48000);
   memInit(0xC0800000, 8*1024*1024);
 
   p_hw->init.sdcard = sdInit();

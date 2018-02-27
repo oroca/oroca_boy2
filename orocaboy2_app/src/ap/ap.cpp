@@ -35,7 +35,7 @@ void gameTest(void);
 //-- External Functions
 extern void swtimerISR(void);
 
-static uint8_t app_mode = MODE_GAME_LOADER;
+static uint8_t app_mode = MODE_CMDIF;//MODE_GAME_LOADER;
 
 
 void apInit(void)

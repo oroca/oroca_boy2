@@ -204,7 +204,7 @@ uint32_t cs43l22_Init(uint16_t DeviceAddr, uint16_t OutputDevice, uint8_t Volume
   /* Adjust PCM volume level */
   counter += CODEC_IO_Write(DeviceAddr, CS43L22_REG_PCMA_VOL, 0x0A);
   counter += CODEC_IO_Write(DeviceAddr, CS43L22_REG_PCMB_VOL, 0x0A);
-  
+
   /* Return communication control value */
   return counter;  
 }
@@ -263,6 +263,90 @@ uint32_t cs43l22_Play(uint16_t DeviceAddr, uint16_t* pBuffer, uint16_t Size)
   /* Return communication control value */
   return counter;  
 }
+
+
+uint32_t cs43l22_Beep(uint16_t DeviceAddr, uint8_t note, uint32_t duration_ms)
+{
+  uint32_t counter = 0;
+  uint8_t freq_duration = (note << 4) | 0x00;
+
+  if(duration_ms <= 86)
+  {
+    freq_duration |= 0x00;
+  }
+  else if(duration_ms <= 430)
+  {
+    freq_duration |= 0x01;
+  }
+  else if(duration_ms <= 780)
+  {
+    freq_duration |= 0x02;
+  }
+  else if(duration_ms <= 1200)
+  {
+    freq_duration |= 0x03;
+  }
+  else if(duration_ms <= 1500)
+  {
+    freq_duration |= 0x04;
+  }
+  else if(duration_ms <= 1800)
+  {
+    freq_duration |= 0x05;
+  }
+  else if(duration_ms <= 2200)
+  {
+    freq_duration |= 0x06;
+  }
+  else if(duration_ms <= 2500)
+  {
+    freq_duration |= 0x07;
+  }
+  else if(duration_ms <= 2800)
+  {
+    freq_duration |= 0x08;
+  }
+  else if(duration_ms <= 3200)
+  {
+    freq_duration |= 0x09;
+  }
+  else if(duration_ms <= 3500)
+  {
+    freq_duration |= 0x0A;
+  }
+  else if(duration_ms <= 3800)
+  {
+    freq_duration |= 0x0B;
+  }
+  else if(duration_ms <= 4200)
+  {
+    freq_duration |= 0x0C;
+  }
+  else if(duration_ms <= 4500)
+  {
+    freq_duration |= 0x0D;
+  }
+  else if(duration_ms <= 4800)
+  {
+    freq_duration |= 0x0E;
+  }
+  else
+  {
+    freq_duration |= 0x0F;
+  }
+
+  /* BEEP OFF for change NOTE */
+  counter += CODEC_IO_Write(DeviceAddr, CS43L22_REG_BEEP_TONE_CFG, 0);
+
+  counter += CODEC_IO_Write(DeviceAddr, CS43L22_REG_BEEP_FREQ_ON_TIME, freq_duration);
+  counter += CODEC_IO_Write(DeviceAddr, CS43L22_REG_BEEP_VOL_OFF_TIME, 0x07);
+  counter += CODEC_IO_Write(DeviceAddr, CS43L22_REG_BEEP_TONE_CFG, (0x01 << 6));
+
+  counter += CODEC_IO_Write(DeviceAddr, CS43L22_REG_POWER_CTL1, 0x9E); //Power ON
+
+  return counter;
+}
+
 
 /**
   * @brief Pauses playing on the audio codec.
@@ -389,12 +473,12 @@ uint32_t cs43l22_SetMute(uint16_t DeviceAddr, uint32_t Cmd)
   {
     counter += CODEC_IO_Write(DeviceAddr, CS43L22_REG_POWER_CTL2, 0xFF);
     counter += CODEC_IO_Write(DeviceAddr, CS43L22_REG_HEADPHONE_A_VOL, 0x01);
-    counter += CODEC_IO_Write(DeviceAddr, CS43L22_REG_HEADPHONE_B_VOL, 0x01);
+    counter += CODEC_IO_Write(DeviceAddr, CS43L22_REG_SPEAKER_A_VOL, 0x01);
   }
   else /* AUDIO_MUTE_OFF Disable the Mute */
   {
     counter += CODEC_IO_Write(DeviceAddr, CS43L22_REG_HEADPHONE_A_VOL, 0x00);
-    counter += CODEC_IO_Write(DeviceAddr, CS43L22_REG_HEADPHONE_B_VOL, 0x00);
+    counter += CODEC_IO_Write(DeviceAddr, CS43L22_REG_SPEAKER_A_VOL, 0x00);
     counter += CODEC_IO_Write(DeviceAddr, CS43L22_REG_POWER_CTL2, OutputDev);
   }
   return counter;

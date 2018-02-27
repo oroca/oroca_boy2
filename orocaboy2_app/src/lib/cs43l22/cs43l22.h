@@ -121,6 +121,23 @@ typedef struct
 #define AUDIO_FREQUENCY_11K           ((uint32_t)11025)
 #define AUDIO_FREQUENCY_8K            ((uint32_t)8000)  
 
+#define CS43L22_BEEP_NOTE_C4          (0x00)
+#define CS43L22_BEEP_NOTE_C5          (0x01)
+#define CS43L22_BEEP_NOTE_D5          (0x02)
+#define CS43L22_BEEP_NOTE_E5          (0x03)
+#define CS43L22_BEEP_NOTE_F5          (0x04)
+#define CS43L22_BEEP_NOTE_G5          (0x05)
+#define CS43L22_BEEP_NOTE_A5          (0x06)
+#define CS43L22_BEEP_NOTE_B5          (0x07)
+#define CS43L22_BEEP_NOTE_C6          (0x08)
+#define CS43L22_BEEP_NOTE_D6          (0x09)
+#define CS43L22_BEEP_NOTE_E6          (0x0A)
+#define CS43L22_BEEP_NOTE_F6          (0x0B)
+#define CS43L22_BEEP_NOTE_G6          (0x0C)
+#define CS43L22_BEEP_NOTE_A6          (0x0D)
+#define CS43L22_BEEP_NOTE_B6          (0x0E)
+#define CS43L22_BEEP_NOTE_C7          (0x0F)
+
 /** CS43l22 Registers  ***/
 #define   CS43L22_REG_ID                  0x01
 #define   CS43L22_REG_POWER_CTL1          0x02
@@ -208,6 +225,7 @@ uint32_t cs43l22_Init(uint16_t DeviceAddr, uint16_t OutputDevice, uint8_t Volume
 void     cs43l22_DeInit(void);
 uint32_t cs43l22_ReadID(uint16_t DeviceAddr);
 uint32_t cs43l22_Play(uint16_t DeviceAddr, uint16_t* pBuffer, uint16_t Size);
+uint32_t cs43l22_Beep(uint16_t DeviceAddr, uint8_t note, uint32_t duration_ms);
 uint32_t cs43l22_Pause(uint16_t DeviceAddr);
 uint32_t cs43l22_Resume(uint16_t DeviceAddr);
 uint32_t cs43l22_Stop(uint16_t DeviceAddr, uint32_t Cmd);

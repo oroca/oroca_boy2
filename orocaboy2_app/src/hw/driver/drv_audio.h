@@ -18,6 +18,10 @@
 err_code_t drvAudioOutInit(uint32_t audio_freq);
 void       drvAudioOutDeInit(void);
 
+void       drvAudioSelectOutDev(uint8_t dev);
+
+void       drvAudioOutBeep(uint8_t note, uint32_t duration_ms);
+
 err_code_t drvAudioOutPlay(uint16_t* p_buf, uint32_t size);
 err_code_t drvAudioOutPause(void);
 err_code_t drvAudioOutResume(void);
