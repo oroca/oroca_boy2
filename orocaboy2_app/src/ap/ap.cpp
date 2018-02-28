@@ -106,6 +106,29 @@ void apMain(void)
       }
     }
 
+    if (buttonGetPressed(MODE_BUTTON) && buttonGetPressedTime(MODE_BUTTON) > 2000)
+    {
+      if(app_mode == MODE_GAME_LOADER)
+      {
+        ledOn(3);
+      }
+      else
+      {
+        ledOff(3);
+      }
+    }
+    else
+    {
+      if(app_mode == MODE_GAME_LOADER)
+      {
+        ledOff(3);
+      }
+      else
+      {
+        ledOn(3);
+      }
+    }
+
     if (tsIsDetected() == 2)
     {
       gameTest();

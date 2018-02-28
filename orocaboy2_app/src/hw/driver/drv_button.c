@@ -51,6 +51,14 @@ bool drvButtonInit(void)
 
   for(i = 0; i < DRV_BUTTON_MAX_CH; i++)
   {
+    if (i == 0)
+    {
+      GPIO_InitStruct.Pull  = GPIO_NOPULL;
+    }
+    else
+    {
+      GPIO_InitStruct.Pull  = GPIO_PULLUP;
+    }
     GPIO_InitStruct.Pin = drv_button[i].pin;
     HAL_GPIO_Init(drv_button[i].port, &GPIO_InitStruct);
   }
