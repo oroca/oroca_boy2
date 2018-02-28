@@ -59,6 +59,7 @@ void hwInit(void)
   lcdInit();
   tsInit();
   audioInit(48000);
+  adcInit();
   memInit(0xC0800000, 8*1024*1024);
 
   p_hw->init.sdcard = sdInit();
@@ -66,6 +67,18 @@ void hwInit(void)
   if (p_hw->init.sdcard == true)
   {
     p_hw->init.fatfs = fatfsInit();
+  }
+
+  gpioPinMode(0, _DEF_INPUT_PULLUP);
+  delay(10);
+
+  if (gpioPinRead(0) == 0)
+  {
+    p_hw->button_exist = true;
+  }
+  else
+  {
+    p_hw->button_exist = false;
   }
 }
 

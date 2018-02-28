@@ -133,6 +133,10 @@ void Gamebuino::begin() {
 	startMenuTimer = 255;
 
 	
+  //buttons
+  buttons.begin();
+  buttons.update();
+
 	//tft
 	display.fill(Color::black);
 	display.fontSize = SYSTEM_DEFAULT_FONT_SIZE;
@@ -299,6 +303,7 @@ bool Gamebuino::update() {
 		frameEndMicros = 0;
 		frameStartMicros = micros();
 
+		buttons.update();
 
 		return true;
 

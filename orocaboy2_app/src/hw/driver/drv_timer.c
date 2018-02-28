@@ -15,7 +15,8 @@
 
 typedef struct
 {
-  TIM_HandleTypeDef hTIM;
+  TIM_HandleTypeDef    hTIM;
+  TIM_OC_InitTypeDef   sConfig;
   uint8_t  enable;
   uint32_t freq;
   uint32_t prescaler_value;
@@ -95,6 +96,11 @@ bool drvTimerInit(void)
   drv_timer_tbl[tim_ch].hTIM.Init.RepetitionCounter = 0;
 
 
+  drv_timer_tbl[tim_ch].sConfig.OCMode              = TIM_OCMODE_TOGGLE;
+  drv_timer_tbl[tim_ch].sConfig.OCPolarity          = TIM_OCPOLARITY_LOW;
+  drv_timer_tbl[tim_ch].sConfig.Pulse               = 10;
+
+
   for( i=0; i<DRV_TIMER_CH_MAX; i++ )
   {
     drv_timer_tbl[i].handler = NULL;
@@ -171,8 +177,19 @@ void drvTimerStart(uint8_t channel)
 {
   if( channel >= DRV_TIMER_CH_MAX ) return;
 
-  HAL_TIM_Base_Init(&drv_timer_tbl[channel].hTIM);
-  HAL_TIM_Base_Start_IT(&drv_timer_tbl[channel].hTIM);
+  switch(channel)
+  {
+    case _DEF_TIMER3:
+      HAL_TIM_OC_Init(&drv_timer_tbl[channel].hTIM);
+      HAL_TIM_OC_ConfigChannel(&drv_timer_tbl[channel].hTIM,  &drv_timer_tbl[channel].sConfig, TIM_CHANNEL_1);
+      HAL_TIM_OC_Start_IT(&drv_timer_tbl[channel].hTIM, TIM_CHANNEL_1);
+      break;
+
+    default:
+      HAL_TIM_Base_Init(&drv_timer_tbl[channel].hTIM);
+      HAL_TIM_Base_Start_IT(&drv_timer_tbl[channel].hTIM);
+      break;
+  }
 
   drv_timer_tbl[channel].enable = 1;
 }
@@ -287,3 +304,11 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
   }
 }
 
+
+void HAL_TIM_OC_MspInit(TIM_HandleTypeDef *htim)
+{
+  if( htim->Instance == TIM3 )                  // _DEF_TIMER3
+  {
+    __HAL_RCC_TIM3_CLK_ENABLE();
+  }
+}

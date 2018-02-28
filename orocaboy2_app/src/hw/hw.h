@@ -23,6 +23,7 @@
 #include "led.h"
 #include "button.h"
 #include "exti.h"
+#include "gpio.h"
 #include "timer.h"
 #include "uart.h"
 #include "flash.h"
@@ -34,6 +35,7 @@
 #include "audio.h"
 #include "sd.h"
 #include "mem.h"
+#include "adc.h"
 #include "fatfs/fatfs.h"
 #include "cmdif/cmdif.h"
 
@@ -49,6 +51,7 @@ typedef struct
 
 typedef struct
 {
+  bool      button_exist;
   hw_init_t init;
 } hw_t;
 

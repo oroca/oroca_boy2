@@ -58,40 +58,16 @@ bool drvAdcInit(void)
   GPIO_InitTypeDef  GPIO_InitStruct;
 
 
-  drv_adc_tbl[0].gpio.port    = GPIOA;
-  drv_adc_tbl[0].gpio.pin     = GPIO_PIN_6;
+  drv_adc_tbl[0].gpio.port    = GPIOC;
+  drv_adc_tbl[0].gpio.pin     = GPIO_PIN_2;
   drv_adc_tbl[0].p_adc_handle = &hADC1;
-  drv_adc_tbl[0].adc_channel  = ADC_CHANNEL_6;
+  drv_adc_tbl[0].adc_channel  = ADC_CHANNEL_12;
 
-  drv_adc_tbl[1].gpio.port    = GPIOA;
-  drv_adc_tbl[1].gpio.pin     = GPIO_PIN_7;
+  drv_adc_tbl[1].gpio.port    = GPIOC;
+  drv_adc_tbl[1].gpio.pin     = GPIO_PIN_3;
   drv_adc_tbl[1].p_adc_handle = &hADC1;
-  drv_adc_tbl[1].adc_channel  = ADC_CHANNEL_7;
+  drv_adc_tbl[1].adc_channel  = ADC_CHANNEL_13;
 
-  drv_adc_tbl[2].gpio.port    = GPIOC;
-  drv_adc_tbl[2].gpio.pin     = GPIO_PIN_0;
-  drv_adc_tbl[2].p_adc_handle = &hADC1;
-  drv_adc_tbl[2].adc_channel  = ADC_CHANNEL_10;
-
-  drv_adc_tbl[3].gpio.port    = GPIOC;
-  drv_adc_tbl[3].gpio.pin     = GPIO_PIN_1;
-  drv_adc_tbl[3].p_adc_handle = &hADC1;
-  drv_adc_tbl[3].adc_channel  = ADC_CHANNEL_11;
-
-  drv_adc_tbl[4].gpio.port    = GPIOC;
-  drv_adc_tbl[4].gpio.pin     = GPIO_PIN_2;
-  drv_adc_tbl[4].p_adc_handle = &hADC1;
-  drv_adc_tbl[4].adc_channel  = ADC_CHANNEL_12;
-
-  drv_adc_tbl[5].gpio.port    = GPIOA;
-  drv_adc_tbl[5].gpio.pin     = GPIO_PIN_5;
-  drv_adc_tbl[5].p_adc_handle = &hADC1;
-  drv_adc_tbl[5].adc_channel  = ADC_CHANNEL_5;
-
-  drv_adc_tbl[6].gpio.port    = GPIOC;
-  drv_adc_tbl[6].gpio.pin     = GPIO_PIN_3;
-  drv_adc_tbl[6].p_adc_handle = &hADC1;
-  drv_adc_tbl[6].adc_channel  = ADC_CHANNEL_13;
 
 
   // INFO: DMA를 이용하여 여러채널 사용시 반드시 ScanConvMode를 활성화 할것(메뉴얼 참조)
@@ -104,7 +80,7 @@ bool drvAdcInit(void)
   hADC1.Init.DiscontinuousConvMode = ENABLE;
   hADC1.Init.NbrOfDiscConversion   = 1;
   hADC1.Init.ExternalTrigConvEdge  = ADC_EXTERNALTRIGCONVEDGE_RISING;
-  hADC1.Init.ExternalTrigConv      = ADC_EXTERNALTRIGCONV_T5_CC3;
+  hADC1.Init.ExternalTrigConv      = ADC_EXTERNALTRIGCONV_T3_CC1;
   hADC1.Init.DataAlign             = ADC_DATAALIGN_RIGHT;
   hADC1.Init.NbrOfConversion       = DRV_ADC_MAX_CH;
   hADC1.Init.DMAContinuousRequests = ENABLE;
@@ -212,11 +188,7 @@ uint16_t drvAdcConvVoltage(uint8_t ch, uint32_t adc_value)
     case _DEF_ADC4:
     case _DEF_ADC5:
     case _DEF_ADC7:
-      ret = (uint16_t)((adc_value * 330 * 151 / 100) / 4095);
-      break;
-
-    case _DEF_ADC6:
-      ret = (uint16_t)((adc_value * 330 * 253 / 33) / 4095);
+      ret = (uint16_t)((adc_value * 330) / 4095);
       break;
   }
 
@@ -237,8 +209,6 @@ void DMA2_Stream0_IRQHandler(void)
 
 void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* AdcHandle)
 {
-  ledOff(0);
-  ledOn(0);
 }
 
 

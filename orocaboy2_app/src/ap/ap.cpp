@@ -40,9 +40,12 @@ static uint8_t app_mode = MODE_CMDIF;//MODE_GAME_LOADER;
 
 void apInit(void)
 {
-  timerSetPeriod(_DEF_TIMER2, 1000);
-  timerAttachInterrupt(_DEF_TIMER2, swtimerISR);
-  timerStart(_DEF_TIMER2);
+  timerSetPeriod(_HW_DEF_TIMER_SWTIMER, 1000);
+  timerAttachInterrupt(_HW_DEF_TIMER_SWTIMER, swtimerISR);
+  timerStart(_HW_DEF_TIMER_SWTIMER);
+
+  timerSetPeriod(_HW_DEF_TIMER_ADC, 100);
+  timerStart(_HW_DEF_TIMER_ADC);
 
   gameloaderInit();
   drawLogo(0);
@@ -184,6 +187,8 @@ void gameTest(void)
 {
   uint32_t pre_time;
   uint8_t *p_buf;
+  int8_t face_dir = 1;
+  int8_t speed = 1;
 
   gb.begin();
   gb.display.clear();
@@ -198,7 +203,7 @@ void gameTest(void)
   animation.setFrame(0);
 
   uint16_t ball_x = 0;
-  uint16_t ball_y = 0;
+  uint16_t ball_y = 130;
   while(1)
   {
     if (gb.update())
@@ -223,11 +228,19 @@ void gameTest(void)
         gb.display.fillRect(tsGetXAxis(0)/2-50, tsGetYAxis(0)/2-50, 50, 50);
       }
 
-      gb.display.drawImage(ball_x, 130,animation, 50, 50);
-      animation.setFrame(0+ball_x%2);
+      if (face_dir > 0)
+      {
+        gb.display.drawImage(ball_x, ball_y,animation, 50, 50);
+        animation.setFrame(0+ball_x%2);
+      }
+      else
+      {
+        gb.display.drawImage(ball_x, ball_y,animation, 50, 50);
+        animation.setFrame(20+ball_x%2);
+      }
 
-      ball_x = (ball_x + 1) % gb.display.width();
-      ball_y = (ball_y + 1) % 240;
+      //ball_x = (ball_x + 1) % gb.display.width();
+      //ball_y = (ball_y + 1) % 240;
 
 
       gb.display.setCursor(0, 0);
@@ -254,6 +267,71 @@ void gameTest(void)
       gb.display.print(" KB");
       gb.display.setColor(BROWN);
       gb.display.println(" BUFFER");
+
+
+      gb.display.setColor(BLUE);
+      gb.display.drawCircle(gb.display.width()/2   , gb.display.height()/2, 10);        // A
+      gb.display.drawCircle(gb.display.width()/2+20, gb.display.height()/2, 10);        // B
+
+      gb.display.drawCircle(gb.display.width()/2    - 40, gb.display.height()/2, 10);   // MENU
+      gb.display.drawCircle(gb.display.width()/2+20 - 40, gb.display.height()/2, 10);   // HOME
+
+      gb.display.drawCircle(gb.display.width()/2/2-5 , gb.display.height()/2, 10);      // left
+      gb.display.drawCircle(gb.display.width()/2/2+25, gb.display.height()/2, 10);      // right
+      gb.display.drawCircle(gb.display.width()/2/2+10, gb.display.height()/2-15, 10);   // up
+      gb.display.drawCircle(gb.display.width()/2/2+10, gb.display.height()/2+15, 10);   // down
+
+
+      speed = 1;
+
+      if (gb.buttons.repeat(Button::a,     1))
+      {
+        gb.display.println("Key : A");
+        gb.display.fillCircle(gb.display.width()/2, gb.display.height()/2, 10);
+        speed = 3;
+      }
+      if (gb.buttons.repeat(Button::b,     1))
+      {
+        gb.display.println("Key : B");
+        gb.display.fillCircle(gb.display.width()/2+20, gb.display.height()/2, 10);
+        speed = 5;
+      }
+      if (gb.buttons.repeat(Button::menu,  1))
+      {
+        gb.display.println("Key : MENU");
+        gb.display.fillCircle(gb.display.width()/2    - 40, gb.display.height()/2, 10);
+      }
+      if (gb.buttons.repeat(Button::home,  1))
+      {
+        gb.display.println("Key : HOME");
+        gb.display.fillCircle(gb.display.width()/2+20 - 40, gb.display.height()/2, 10);
+      }
+      if (gb.buttons.repeat(Button::left,  1))
+      {
+        gb.display.println("Key : LEFT");
+        gb.display.fillCircle(gb.display.width()/2/2-5 , gb.display.height()/2, 10);
+        face_dir = -1;
+        ball_x = (ball_x - speed) % gb.display.width();
+      }
+      if (gb.buttons.repeat(Button::right, 1))
+      {
+        gb.display.println("Key : RIGHT");
+        gb.display.fillCircle(gb.display.width()/2/2+25, gb.display.height()/2, 10);
+        face_dir = 1;
+        ball_x = (ball_x + speed) % gb.display.width();
+      }
+      if (gb.buttons.repeat(Button::up,    1))
+      {
+        gb.display.println("Key : UP");
+        gb.display.fillCircle(gb.display.width()/2/2+10, gb.display.height()/2-15, 10);
+        ball_y = (ball_y - speed) % gb.display.height();
+      }
+      if (gb.buttons.repeat(Button::down,  1))
+      {
+        gb.display.println("Key : DOWN");
+        gb.display.fillCircle(gb.display.width()/2/2+10, gb.display.height()/2+15, 10);
+        ball_y = (ball_y + speed) % gb.display.height();
+      }
 
       cnt = millis()-pre_time;
 
