@@ -214,6 +214,7 @@ void gameTest(void)
   int8_t speed = 1;
 
   gb.begin();
+  //gb.tft.setScanline(true);
   gb.display.clear();
 
 

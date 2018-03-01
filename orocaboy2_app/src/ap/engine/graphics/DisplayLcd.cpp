@@ -43,7 +43,7 @@ inline uint16_t swapcolor(uint16_t x) {
 
 DisplayLcd::DisplayLcd() : Graphics(DISPLAY_LCD_WIDTH, DISPLAY_LCD_HEIGHT)
 {
-
+  scanline_enable = false;
 }
 
 
@@ -219,16 +219,23 @@ void DisplayLcd::drawImage(int16_t x, int16_t y, Image& img, int16_t w2, int16_t
 
 			pre_time = micros();
 
+      uint32_t line_count = 2;
+
+      if (scanline_enable == true) line_count = 1;
+
+
 			//prepare the first line
 			for (uint16_t i = 0; i < w; i++) { //horizontal coordinate in source image
 				uint16_t color = img._buffer[i];
 				preBufferLine[i * 2] = preBufferLine[(i * 2) + 1] = color;
 			}
-			memcpy(&preBufferLine[w2], preBufferLine, w2 * 2); //double the line on the second half of the buffer
+			memcpy(&preBufferLine[w2], preBufferLine, w2 * line_count); //double the line on the second half of the buffer
 
 			uint16_t line = 0;
       
 			while(lcdDrawAvailable() == false);
+
+
 
 			//start sending lines and processing them in parallel using DMA
 			for (uint16_t j = 1; j < h; j ++) { //vertical coordinate in source image, start from the second line
@@ -238,18 +245,32 @@ void DisplayLcd::drawImage(int16_t x, int16_t y, Image& img, int16_t w2, int16_t
 				preBufferLine = sendBufferLine;
 				sendBufferLine = temp;
 
-				drvLcdCopyLineBuffer((uint16_t)0, (uint16_t)(line*2), (uint8_t *)sendBufferLine, (uint32_t)(_width * 2));
+				drvLcdCopyLineBuffer((uint16_t)0, (uint16_t)(line*2), (uint8_t *)sendBufferLine, (uint32_t)(_width * line_count));
 				line++;
 
+				/*
 				//prepare the next line while the current one is being transferred
 				for (uint16_t i = 0; i < w; i ++) { //horizontal coordinate in source image
 					uint16_t color = img._buffer[(j * w) + i];
 					preBufferLine[i * 2] = preBufferLine[(i * 2) + 1] = color;
 				}
-				memcpy(&preBufferLine[w2], preBufferLine, w2 * 2); //double the line on the second half of the buffer
+				*/
+				uint32_t *p_src = (uint32_t *)&img._buffer[(j * w) + 0];
+
+        for (uint16_t i = 0; i < w/2; i ++) { //horizontal coordinate in source image
+          uint32_t color = p_src[i];
+
+          preBufferLine[(i * 4) + 0] = color;
+          preBufferLine[(i * 4) + 1] = color;
+          preBufferLine[(i * 4) + 2] = color>>16;
+          preBufferLine[(i * 4) + 3] = color>>16;
+        }
+
+
+				memcpy(&preBufferLine[w2], preBufferLine, w2 * line_count); //double the line on the second half of the buffer
 			}
 
-      drvLcdCopyLineBuffer((uint16_t)0, (uint16_t)(line*2), (uint8_t *)preBufferLine, (uint32_t)(_width * 2));
+      drvLcdCopyLineBuffer((uint16_t)0, (uint16_t)(line*2), (uint8_t *)preBufferLine, (uint32_t)(_width * line_count));
       line++;
 
       lcdRequestDraw();
@@ -379,12 +400,17 @@ void DisplayLcd::fillRect(int16_t x, int16_t y, int16_t w, int16_t h) {
 }
 
 
-
-
 void DisplayLcd::invertDisplay(boolean i)
 {
 
 }
+
+
+void DisplayLcd::setScanline(bool enable)
+{
+  scanline_enable = enable;
+}
+
 
 }
 

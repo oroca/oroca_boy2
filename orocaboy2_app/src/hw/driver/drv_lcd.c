@@ -236,6 +236,12 @@ void drvLcdClear(uint32_t rgb_code)
   drvLcdFillBuffer((uint32_t *)lcd_layer.p_buffer[lcd_layer.buffer_index], XSIZE_PHYS, YSIZE_PHYS, 0, rgb_code);
 }
 
+void drvLcdBufferClear(uint32_t rgb_code)
+{
+  drvLcdFillBuffer((uint32_t *)lcd_layer.p_buffer[0], XSIZE_PHYS, YSIZE_PHYS, 0, rgb_code);
+  drvLcdFillBuffer((uint32_t *)lcd_layer.p_buffer[1], XSIZE_PHYS, YSIZE_PHYS, 0, rgb_code);
+}
+
 bool drvLcdDrawAvailable(void)
 {
   return !lcd_request_draw;

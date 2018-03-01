@@ -24,6 +24,9 @@ Authors:
 #include <engine/orocaboy.h>
 
 
+extern "C" void drvLcdBufferClear(uint32_t rgb_code);
+
+
 // a 3x5 font table
 extern const uint8_t font3x5[];
 
@@ -138,6 +141,8 @@ void Gamebuino::begin() {
   buttons.update();
 
 	//tft
+  drvLcdBufferClear(0);
+
 	display.fill(Color::black);
 	display.fontSize = SYSTEM_DEFAULT_FONT_SIZE;
 	
