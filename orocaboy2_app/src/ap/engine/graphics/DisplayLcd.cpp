@@ -208,8 +208,10 @@ void DisplayLcd::drawImage(int16_t x, int16_t y, Image& img, int16_t w2, int16_t
 
 
 	//x2 upscaling to full screen
-	if ((w2 == (w * 2)) && (h2 == (h * 2)) && (_width == w2) && (_height == h2)) {
-		if (img.colorMode == ColorMode::rgb565) {
+	if ((w2 == (w * 2)) && (h2 == (h * 2)) && (_width == w2) && (_height == h2))
+	{
+		if (img.colorMode == ColorMode::rgb565)
+		{
 			uint16_t preBufferLineArray[w2 * 2];
 			uint16_t sendBufferLineArray[w2 * 2];
 			uint16_t *preBufferLine = preBufferLineArray;
@@ -322,6 +324,82 @@ void DisplayLcd::drawImage(int16_t x, int16_t y, Image& img, int16_t w2, int16_t
 			return;
 		}
 	}
+
+  //x4 upscaling to full screen
+  if ((w2 == (w * 4)) && (h2 == (h * 4)) && (_width == w2) && (_height == h2))
+  {
+    if (img.colorMode == ColorMode::rgb565)
+    {
+      uint16_t preBufferLineArray[w2];
+      uint16_t sendBufferLineArray[w2];
+      uint16_t *preBufferLine = preBufferLineArray;
+      uint16_t *sendBufferLine = sendBufferLineArray;
+
+      uint32_t pre_time;
+
+      pre_time = micros();
+
+      uint32_t line_count = 1;
+
+
+
+      //prepare the first line
+      for (uint16_t i = 0; i < w; i++) { //horizontal coordinate in source image
+        uint16_t color = img._buffer[i];
+        preBufferLine[(i * 4) + 0] = preBufferLine[(i * 4) + 1] = color;
+        preBufferLine[(i * 4) + 2] = preBufferLine[(i * 4) + 3] = color;
+      }
+
+      uint16_t line = 0;
+
+      while(lcdDrawAvailable() == false);
+
+
+
+      //start sending lines and processing them in parallel using DMA
+      for (uint16_t j = 1; j < h; j ++) { //vertical coordinate in source image, start from the second line
+
+        //swap buffers pointers
+        uint16_t *temp = preBufferLine;
+        preBufferLine = sendBufferLine;
+        sendBufferLine = temp;
+
+        drvLcdCopyLineBuffer((uint16_t)0, (uint16_t)(line*4 + 0), (uint8_t *)sendBufferLine, (uint32_t)(_width));
+        //drvLcdCopyLineBuffer((uint16_t)0, (uint16_t)(line*4 + 1), (uint8_t *)sendBufferLine, (uint32_t)(_width));
+        drvLcdCopyLineBuffer((uint16_t)0, (uint16_t)(line*4 + 2), (uint8_t *)sendBufferLine, (uint32_t)(_width));
+        //drvLcdCopyLineBuffer((uint16_t)0, (uint16_t)(line*4 + 3), (uint8_t *)sendBufferLine, (uint32_t)(_width));
+        line++;
+
+
+        uint32_t *p_src = (uint32_t *)&img._buffer[(j * w) + 0];
+
+        for (uint16_t i = 0; i < w/2; i ++) { //horizontal coordinate in source image
+          uint32_t color = p_src[i];
+
+          preBufferLine[(i * 8) + 0] = color;
+          preBufferLine[(i * 8) + 1] = color;
+          preBufferLine[(i * 8) + 2] = color;
+          preBufferLine[(i * 8) + 3] = color;
+
+          preBufferLine[(i * 8) + 4] = color>>16;
+          preBufferLine[(i * 8) + 5] = color>>16;
+          preBufferLine[(i * 8) + 6] = color>>16;
+          preBufferLine[(i * 8) + 7] = color>>16;
+        }
+      }
+
+      drvLcdCopyLineBuffer((uint16_t)0, (uint16_t)(line*4 + 0), (uint8_t *)preBufferLine, (uint32_t)(_width));
+      drvLcdCopyLineBuffer((uint16_t)0, (uint16_t)(line*4 + 1), (uint8_t *)preBufferLine, (uint32_t)(_width));
+      drvLcdCopyLineBuffer((uint16_t)0, (uint16_t)(line*4 + 2), (uint8_t *)preBufferLine, (uint32_t)(_width));
+      drvLcdCopyLineBuffer((uint16_t)0, (uint16_t)(line*4 + 3), (uint8_t *)preBufferLine, (uint32_t)(_width));
+      line++;
+
+      lcdRequestDraw();
+
+      draw_time = micros() - pre_time;
+      return;
+    }
+  }
 
 	// fall back to most generic but slow resizing
 	Graphics::drawImage(x, y, img, w2, h2);
