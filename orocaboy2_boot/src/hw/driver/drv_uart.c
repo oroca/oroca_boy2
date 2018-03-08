@@ -384,12 +384,12 @@ void drvUartErrHandler(uint8_t channel)
 
 void HAL_UART_TxCpltCallback(UART_HandleTypeDef *UartHandle)
 {
-  if (UartHandle->Instance == drv_uart_tbl[_DEF_UART4].hw.h_uart_inst)
+  if (UartHandle->Instance == drv_uart_tbl[_DEF_UART2].hw.h_uart_inst)
   {
-    drv_uart_tbl[_DEF_UART4].hw.tx_done = true;
-    if (drv_uart_tbl[_DEF_UART4].hw.txDoneISR != NULL)
+    drv_uart_tbl[_DEF_UART2].hw.tx_done = true;
+    if (drv_uart_tbl[_DEF_UART2].hw.txDoneISR != NULL)
     {
-      (*drv_uart_tbl[_DEF_UART4].hw.txDoneISR)();
+      (*drv_uart_tbl[_DEF_UART2].hw.txDoneISR)();
     }
   }
 }
@@ -414,17 +414,17 @@ void HAL_UART_ErrorCallback(UART_HandleTypeDef *UartHandle)
 //
 void USART6_IRQHandler(void)
 {
-  HAL_UART_IRQHandler(&drv_uart_tbl[_DEF_UART4].hw.h_uart);
+  HAL_UART_IRQHandler(&drv_uart_tbl[_DEF_UART2].hw.h_uart);
 }
 
 void DMA2_Stream2_IRQHandler(void)
 {
-  HAL_DMA_IRQHandler(drv_uart_tbl[_DEF_UART4].hw.h_uart.hdmarx);
+  HAL_DMA_IRQHandler(drv_uart_tbl[_DEF_UART2].hw.h_uart.hdmarx);
 }
 
 void DMA2_Stream6_IRQHandler(void)
 {
-  HAL_DMA_IRQHandler(drv_uart_tbl[_DEF_UART4].hw.h_uart.hdmatx);
+  HAL_DMA_IRQHandler(drv_uart_tbl[_DEF_UART2].hw.h_uart.hdmatx);
 }
 
 
