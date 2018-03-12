@@ -108,6 +108,10 @@ bool drvFlashInit(void)
   flash_sector_attr[23].addr   = 0x081E0000;
   flash_sector_attr[23].length = 128*1024;
 
+
+  __HAL_FLASH_CLEAR_FLAG(FLASH_FLAG_EOP | FLASH_FLAG_OPERR | FLASH_FLAG_WRPERR |
+                         FLASH_FLAG_PGAERR | FLASH_FLAG_PGPERR | FLASH_FLAG_PGSERR);
+
   return true;
 }
 
@@ -224,6 +228,9 @@ err_code_t drvFlashEraseSector(uint32_t sector)
 
   HAL_FLASH_Unlock();
 
+
+  __HAL_FLASH_CLEAR_FLAG(FLASH_FLAG_EOP | FLASH_FLAG_OPERR | FLASH_FLAG_WRPERR |
+                         FLASH_FLAG_PGAERR | FLASH_FLAG_PGPERR | FLASH_FLAG_PGSERR);
 
   HAL_FLASHStatus = HAL_FLASHEx_Erase(&pEraseInit, &SectorError);
   if(HAL_FLASHStatus != HAL_OK)

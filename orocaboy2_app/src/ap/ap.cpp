@@ -247,9 +247,9 @@ void gameTest(void)
       gb.display.setColor(BLUE);
       //gb.display.fillRect(ball_x, ball_y, 50, 50);
 
-      if (tsIsDetected() > 0)
+      if (gb.touch.isDetected() > 0)
       {
-        gb.display.fillRect(tsGetXAxis(0)/2-50, tsGetYAxis(0)/2-50, 50, 50);
+        gb.display.fillRect(gb.touch.getX(0)-50, gb.touch.getY(0)-50, 50, 50);
       }
 
       if (face_dir > 0)
