@@ -19,6 +19,8 @@
 
 #ifdef _USE_HW_FATFS
 
+#include "lib/FatFs/src/ff_gen_drv.h"
+#include "driver/sd_diskio.h"
 
 
 

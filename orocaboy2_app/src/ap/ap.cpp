@@ -29,7 +29,7 @@ uint8_t ap_flag_game_loader = 0;
 //-- Internal Functions
 void drawLogo(uint8_t mode);
 void gameTest(void);
-
+void emuTest(void);
 
 
 //-- External Functions
@@ -131,7 +131,8 @@ void apMain(void)
 
     if (tsIsDetected() == 2)
     {
-      gameTest();
+      //gameTest();
+      emuTest();
     }
 
     if (millis()-pre_time >= 500)
@@ -367,6 +368,20 @@ void gameTest(void)
   }
 }
 
+
+extern int pnesxMain();
+
+void emuTest(void)
+{
+  uint32_t pre_time;
+
+  gb.begin();
+  gb.display.clear();
+  gb.display.println("pNesX Mode");
+  while(!gb.update());
+
+  pnesxMain();
+}
 
 
 

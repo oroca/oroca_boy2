@@ -236,7 +236,7 @@ int fatfsCmdif(int argc, char **argv)
   {
     FRESULT res;
 
-    res = fatfsScanFiles("/");
+    res = fatfsScanFiles("/sd");
 
     if (res != FR_OK)
     {

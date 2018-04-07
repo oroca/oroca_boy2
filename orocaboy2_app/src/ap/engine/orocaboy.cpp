@@ -300,7 +300,7 @@ void Gamebuino::titleScreen(const char* logo) {
 
 bool recording_screen = false;
 
-bool Gamebuino::update() {
+bool Gamebuino::update(bool draw_enable) {
 	if (((nextFrameMillis - millis()) > timePerFrame) && frameEndMicros) { //if time to render a new frame is reached and the frame end has ran once
 		nextFrameMillis = millis() + timePerFrame;
 		frameCount++;
@@ -325,8 +325,10 @@ bool Gamebuino::update() {
 	
 	
 	//send buffer to the screen
-	updateDisplay();
-	
+	if (draw_enable == true)
+	{
+	  updateDisplay();
+	}
 
 	frameEndMicros = micros(); //measure the frame's end time
 	frameDurationMicros = frameEndMicros - frameStartMicros;

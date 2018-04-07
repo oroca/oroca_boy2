@@ -39,6 +39,8 @@ inline uint16_t swapcolor(uint16_t x) {
 	return (x << 11) | (x & 0x07E0) | (x >> 11);
 }
 
+extern "C" void drvLcdCopyLineBuffer(uint16_t x_pos, uint16_t y_pos, uint8_t *p_data, uint32_t length);
+
 
 
 DisplayLcd::DisplayLcd() : Graphics(DISPLAY_LCD_WIDTH, DISPLAY_LCD_HEIGHT)
@@ -61,7 +63,17 @@ void DisplayLcd::drawBufferedLine(int16_t x, int16_t y, uint16_t *buffer, uint16
 //the color must be formated as the destination
 void DisplayLcd::drawBuffer(int16_t x, int16_t y, uint16_t *buffer, uint16_t w, uint16_t h)
 {
-  //st7735drawBuffer(x, y, buffer, w, h);
+  uint16_t preBufferLineArray[w*2];
+  uint16_t *preBufferLine = preBufferLineArray;
+
+
+  for (uint16_t i = 0; i < w; i++)
+  {
+    uint16_t color = buffer[i];
+    preBufferLine[i * 2] = preBufferLine[(i * 2) + 1] = color;
+  }
+
+  drvLcdCopyLineBuffer((uint16_t)(x*2), (uint16_t)(y*2), (uint8_t *)preBufferLine, w*2);
 }
 
 //fast method to quickly push a buffered line of pixels
@@ -185,7 +197,7 @@ void bufferIndexLineDouble(uint16_t* preBufferLine, uint16_t* img_buffer, int16_
 	memcpy(&preBufferLine[w2], preBufferLine, w2 * 2); //double the line on the second half of the buffer
 }
 
-extern "C" void drvLcdCopyLineBuffer(uint16_t x_pos, uint16_t y_pos, uint8_t *p_data, uint32_t length);
+
 
 
 
