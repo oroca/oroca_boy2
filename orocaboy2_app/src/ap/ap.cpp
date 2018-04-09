@@ -35,7 +35,7 @@ void emuTest(void);
 //-- External Functions
 extern void swtimerISR(void);
 
-static uint8_t app_mode = MODE_CMDIF;//MODE_GAME_LOADER;
+static uint8_t app_mode = MODE_GAME_LOADER;//MODE_CMDIF;
 
 
 void apInit(void)
@@ -131,8 +131,7 @@ void apMain(void)
 
     if (tsIsDetected() == 2)
     {
-      //gameTest();
-      emuTest();
+      gameTest();
     }
 
     if (millis()-pre_time >= 500)
@@ -209,7 +208,7 @@ extern uint32_t draw_time;;
 
 void gameTest(void)
 {
-  uint32_t pre_time;
+  uint32_t pre_time, pre_time_tc;
   uint8_t *p_buf;
   int8_t face_dir = 1;
   int8_t speed = 1;
@@ -231,6 +230,15 @@ void gameTest(void)
   uint16_t ball_y = 130;
   while(1)
   {
+    pre_time_tc = millis();
+    while (tsIsDetected() == 2)
+    {
+      if(millis() - pre_time_tc > 1000)
+      {
+        emuTest();
+      }
+    }
+
     if (gb.update())
     {
       pre_time = millis();
