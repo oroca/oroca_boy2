@@ -47,9 +47,16 @@
 
 AUDIO_DrvTypeDef          *audio_drv;
 SAI_HandleTypeDef         haudio_out_sai;
+I2S_HandleTypeDef         haudio_in_i2s;
 TIM_HandleTypeDef         haudio_tim;
 
+
 static void drvAudioOutClockConfig(SAI_HandleTypeDef *hsai, uint32_t audio_freq, void *Params);
+static void TIMx_IC_MspInit(TIM_HandleTypeDef *htim);
+static void TIMx_IC_MspDeInit(TIM_HandleTypeDef *htim);
+static void TIMx_Init(void);
+static void TIMx_DeInit(void);
+
 
 err_code_t drvAudioOutInit(uint32_t audio_freq)
 {
@@ -95,6 +102,21 @@ err_code_t drvAudioOutInit(uint32_t audio_freq)
   }
 
   __HAL_SAI_ENABLE(&haudio_out_sai);
+
+
+  haudio_in_i2s.Instance = SPI3;
+  haudio_in_i2s.Init.Mode = I2S_MODE_MASTER_TX;
+  haudio_in_i2s.Init.Standard = I2S_STANDARD_MSB;
+  haudio_in_i2s.Init.DataFormat = I2S_DATAFORMAT_16B;
+  haudio_in_i2s.Init.MCLKOutput = I2S_MCLKOUTPUT_ENABLE; // Enables MCLK output
+  haudio_in_i2s.Init.AudioFreq = I2S_AUDIOFREQ_44K;
+  haudio_in_i2s.Init.CPOL = I2S_CPOL_LOW;
+  haudio_in_i2s.Init.ClockSource = I2S_CLOCK_PLL;
+  haudio_in_i2s.Init.FullDuplexMode = I2S_FULLDUPLEXMODE_DISABLE;
+  if (HAL_I2S_Init(&haudio_in_i2s) != HAL_OK)
+  {
+    ret = ERR_AUDIO;
+  }
 
   if(ret == OK)
   {
@@ -372,6 +394,12 @@ void HAL_SAI_ErrorCallback(SAI_HandleTypeDef *hsai)
 
 }
 
+void DMA1_Stream2_IRQHandler(void)
+{
+HAL_DMA_IRQHandler(haudio_in_i2s.hdmarx);
+}
+
+
 static void  drvAudioOutClockConfig(SAI_HandleTypeDef *hsai, uint32_t audio_freq, void *Params)
 {
   RCC_PeriphCLKInitTypeDef rcc_ex_clk_init_struct;
@@ -520,6 +548,251 @@ void  HAL_SAI_MspDeInit(SAI_HandleTypeDef *hsai)
   /* Disable SAI clock */
   __HAL_RCC_SAI1_CLK_DISABLE();
 }
+
+
+void HAL_I2S_MspInit(I2S_HandleTypeDef *hi2s)
+{
+  static DMA_HandleTypeDef hdma_i2s_rx;
+  GPIO_InitTypeDef  gpio_init_structure;
+
+  /* Configure the Timer which clocks the MEMS */
+  /* Moved inside MSP to allow applic to redefine the TIMx_MspInit */
+  TIMx_Init();
+
+  /* Enable I2S clock */
+  __HAL_RCC_SPI3_CLK_ENABLE();
+
+  /* Enable SCK and SD GPIO clock */
+  __HAL_RCC_GPIOD_CLK_ENABLE();
+  __HAL_RCC_GPIOB_CLK_ENABLE();
+  /* CODEC_I2S pins configuration: SCK and SD pins */
+  gpio_init_structure.Pin = GPIO_PIN_3;
+  gpio_init_structure.Mode = GPIO_MODE_AF_PP;
+  gpio_init_structure.Pull = GPIO_NOPULL;
+  gpio_init_structure.Speed = GPIO_SPEED_FAST;
+  gpio_init_structure.Alternate = GPIO_AF6_SPI3;
+  HAL_GPIO_Init(GPIOB, &gpio_init_structure);
+
+  gpio_init_structure.Pin = GPIO_PIN_6;
+  gpio_init_structure.Alternate = GPIO_AF5_I2S3ext;
+  HAL_GPIO_Init(GPIOD, &gpio_init_structure);
+
+  /* Enable PD12 (I2S3_CLK) connected to PB3 via jamper JP4 */
+  /* on Eval this was provided by PC6 (initialized in TIMx section) */
+/*
+  gpio_init_structure.Pin = GPIO_PIN_12;
+  gpio_init_structure.Mode = GPIO_MODE_AF_PP;
+  gpio_init_structure.Pull = GPIO_NOPULL;
+  gpio_init_structure.Speed = GPIO_SPEED_FAST;
+  gpio_init_structure.Alternate = GPIO_AF6_SPI3;
+  HAL_GPIO_Init(GPIOD, &gpio_init_structure); */
+
+
+  /* Enable the DMA clock */
+  __HAL_RCC_DMA1_CLK_ENABLE();
+
+  if(hi2s->Instance == SPI3)
+  {
+    /* Configure the hdma_i2sRx handle parameters */
+    hdma_i2s_rx.Init.Channel             = DMA_CHANNEL_0;
+    hdma_i2s_rx.Init.Direction           = DMA_PERIPH_TO_MEMORY;
+    hdma_i2s_rx.Init.PeriphInc           = DMA_PINC_DISABLE;
+    hdma_i2s_rx.Init.MemInc              = DMA_MINC_ENABLE;
+    hdma_i2s_rx.Init.PeriphDataAlignment = DMA_PDATAALIGN_HALFWORD;
+    hdma_i2s_rx.Init.MemDataAlignment    = DMA_MDATAALIGN_HALFWORD;
+    hdma_i2s_rx.Init.Mode                = DMA_CIRCULAR;
+    hdma_i2s_rx.Init.Priority            = DMA_PRIORITY_HIGH;
+    hdma_i2s_rx.Init.FIFOMode            = DMA_FIFOMODE_DISABLE;
+    hdma_i2s_rx.Init.FIFOThreshold       = DMA_FIFO_THRESHOLD_FULL;
+    hdma_i2s_rx.Init.MemBurst            = DMA_MBURST_SINGLE;
+    hdma_i2s_rx.Init.PeriphBurst         = DMA_MBURST_SINGLE;
+
+    hdma_i2s_rx.Instance = DMA1_Stream2;
+
+    /* Associate the DMA handle */
+    __HAL_LINKDMA(hi2s, hdmarx, hdma_i2s_rx);
+
+    /* Deinitialize the Stream for new transfer */
+    HAL_DMA_DeInit(&hdma_i2s_rx);
+
+    /* Configure the DMA Stream */
+    HAL_DMA_Init(&hdma_i2s_rx);
+  }
+
+  /* I2S DMA IRQ Channel configuration */
+  HAL_NVIC_SetPriority(DMA1_Stream2_IRQn, 6, 0);
+  HAL_NVIC_EnableIRQ(DMA1_Stream2_IRQn);
+}
+
+void HAL_I2S_MspDeInit(I2S_HandleTypeDef *hi2s)
+{
+  GPIO_InitTypeDef  gpio_init_structure;
+
+  /* I2S DMA IRQ Channel deactivation */
+  HAL_NVIC_DisableIRQ(DMA1_Stream2_IRQn);
+
+  if(hi2s->Instance == SPI3)
+  {
+    /* Deinitialize the Stream for new transfer */
+    HAL_DMA_DeInit(hi2s->hdmarx);
+  }
+
+ /* Disable I2S block */
+  __HAL_I2S_DISABLE(hi2s);
+
+  /* Disable pins: SCK and SD pins */
+  gpio_init_structure.Pin = GPIO_PIN_3;
+  HAL_GPIO_DeInit(GPIOB, gpio_init_structure.Pin);
+  gpio_init_structure.Pin = GPIO_PIN_6;
+  HAL_GPIO_DeInit(GPIOD, gpio_init_structure.Pin);
+
+  /* Disable I2S clock */
+__HAL_RCC_SPI3_CLK_DISABLE();
+}
+
+
+
+
+
+/**
+  * @brief  Configure TIM as a clock divider by 2.
+  *         I2S_SCK is externally connected to TIMx input channel
+  */
+static void TIMx_Init(void)
+{
+  TIM_IC_InitTypeDef     s_ic_config;
+  TIM_OC_InitTypeDef     s_oc_config;
+  TIM_ClockConfigTypeDef s_clk_source_config;
+  TIM_SlaveConfigTypeDef s_slave_config;
+
+  /* Configure the TIM peripheral --------------------------------------------*/
+  /* Set TIMx instance */
+  haudio_tim.Instance = TIM4;
+  /* Timer Input Capture Configuration Structure declaration */
+   /* Initialize TIMx peripheral as follow:
+       + Period = 0xFFFF
+       + Prescaler = 0
+       + ClockDivision = 0
+       + Counter direction = Up
+  */
+  haudio_tim.Init.Period        = 1;
+  haudio_tim.Init.Prescaler     = 0;
+  haudio_tim.Init.ClockDivision = 0;
+  haudio_tim.Init.CounterMode   = TIM_COUNTERMODE_UP;
+
+  /* Initialize the TIMx peripheral with the structure above */
+  TIMx_IC_MspInit(&haudio_tim);
+  HAL_TIM_IC_Init(&haudio_tim);
+
+  /* Configure the Input Capture channel -------------------------------------*/
+  /* Configure the Input Capture of channel 2 */
+  s_ic_config.ICPolarity  = TIM_ICPOLARITY_FALLING;
+  s_ic_config.ICSelection = TIM_ICSELECTION_DIRECTTI;
+  s_ic_config.ICPrescaler = TIM_ICPSC_DIV1;
+  s_ic_config.ICFilter    = 0;
+  HAL_TIM_IC_ConfigChannel(&haudio_tim, &s_ic_config, TIM_CHANNEL_1);
+
+  /* Select external clock mode 1 */
+  s_clk_source_config.ClockSource = TIM_CLOCKSOURCE_ETRMODE1;
+  s_clk_source_config.ClockPolarity = TIM_CLOCKPOLARITY_NONINVERTED;
+  s_clk_source_config.ClockPrescaler = TIM_CLOCKPRESCALER_DIV1;
+  s_clk_source_config.ClockFilter = 0;
+  HAL_TIM_ConfigClockSource(&haudio_tim, &s_clk_source_config);
+
+  /* Select Input Channel as input trigger */
+  s_slave_config.InputTrigger = TIM_TS_TI1FP1;
+  s_slave_config.SlaveMode = TIM_SLAVEMODE_EXTERNAL1;
+  s_slave_config.TriggerPolarity = TIM_TRIGGERPOLARITY_NONINVERTED;
+  s_slave_config.TriggerPrescaler = TIM_CLOCKPRESCALER_DIV1;
+  s_slave_config.TriggerFilter = 0;
+  HAL_TIM_SlaveConfigSynchronization(&haudio_tim, &s_slave_config);
+
+  /* Output Compare PWM Mode configuration: Channel2 */
+  s_oc_config.OCMode = TIM_OCMODE_PWM1;
+  s_oc_config.OCIdleState = TIM_OCIDLESTATE_SET;
+  s_oc_config.Pulse = 1;
+  s_oc_config.OCPolarity = TIM_OCPOLARITY_HIGH;
+  s_oc_config.OCNPolarity = TIM_OCNPOLARITY_HIGH;
+  s_oc_config.OCFastMode = TIM_OCFAST_DISABLE;
+  s_oc_config.OCNIdleState = TIM_OCNIDLESTATE_SET;
+
+  /* Initialize the TIM3 Channel2 with the structure above */
+  HAL_TIM_PWM_ConfigChannel(&haudio_tim, &s_oc_config, TIM_CHANNEL_2);
+
+  /* Start the TIM3 Channel2 */
+  HAL_TIM_PWM_Start(&haudio_tim, TIM_CHANNEL_2);
+
+  /* Start the TIM3 Channel1 */
+  HAL_TIM_IC_Start(&haudio_tim, TIM_CHANNEL_1);
+}
+
+/**
+  * @brief  Configure TIM as a clock divider by 2.
+  *         I2S_SCK is externally connected to TIMx input channel
+  */
+static void TIMx_DeInit(void)
+{
+  haudio_tim.Instance = TIM4;
+
+  /* Stop the TIM3 Channel2 */
+  HAL_TIM_PWM_Stop(&haudio_tim, TIM_CHANNEL_2);
+  /* Stop the TIM3 Channel1 */
+  HAL_TIM_IC_Stop(&haudio_tim, TIM_CHANNEL_1);
+
+  HAL_TIM_IC_DeInit(&haudio_tim);
+
+  /* Initialize the TIMx peripheral with the structure above */
+  TIMx_IC_MspDeInit(&haudio_tim);
+}
+
+
+/**
+  * @brief  Initializes the TIM INput Capture MSP.
+  * @param  htim: TIM handle
+  */
+static void TIMx_IC_MspInit(TIM_HandleTypeDef *htim)
+{
+  GPIO_InitTypeDef   gpio_init_structure;
+
+  /* Enable peripherals and GPIO Clocks --------------------------------------*/
+  /* TIMx Peripheral clock enable */
+  __HAL_RCC_TIM4_CLK_ENABLE();
+
+  /* Enable GPIO Channels Clock */
+  __HAL_RCC_GPIOD_CLK_ENABLE();
+
+  /* Configure I/Os ----------------------------------------------------------*/
+  /* Common configuration for all channels */
+  gpio_init_structure.Mode = GPIO_MODE_AF_PP;
+  gpio_init_structure.Pull = GPIO_NOPULL;
+  gpio_init_structure.Speed = GPIO_SPEED_HIGH;
+  gpio_init_structure.Alternate = GPIO_AF2_TIM4;
+
+  /* Configure TIM input channel */
+  gpio_init_structure.Pin = GPIO_PIN_12;
+  HAL_GPIO_Init(GPIOD, &gpio_init_structure);
+
+  /* Configure TIM output channel */
+  gpio_init_structure.Pin = GPIO_PIN_13;
+  HAL_GPIO_Init(GPIOD, &gpio_init_structure);
+}
+
+/**
+  * @brief  Initializes the TIM INput Capture MSP.
+  * @param  htim: TIM handle
+  */
+static void TIMx_IC_MspDeInit(TIM_HandleTypeDef *htim)
+{
+    /* Disable TIMx Peripheral clock  */
+    __HAL_RCC_TIM4_CLK_DISABLE();
+
+    /* GPIO pins clock and DMA clock can be shut down in the applic
+       by surcgarging this __weak function */
+}
+
+
+
+
 
 
 

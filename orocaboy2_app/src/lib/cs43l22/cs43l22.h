@@ -44,7 +44,7 @@
 /** @addtogroup BSP
   * @{
   */
-#define CODEC_STANDARD                0x04
+#define CODEC_STANDARD                0x04  //DSP Mode
 
 #ifndef AUDIO_DrvTypeDef
 typedef struct
