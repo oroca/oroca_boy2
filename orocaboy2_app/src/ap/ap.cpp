@@ -217,8 +217,6 @@ void gameTest(void)
   //gb.tft.setScanline(true);
   gb.display.clear();
 
-
-
   int cnt = 0;
   unsigned long timeBenchmark = 20;
   uint16_t startTime = millis();

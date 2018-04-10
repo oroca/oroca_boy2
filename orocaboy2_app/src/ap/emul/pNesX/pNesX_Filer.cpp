@@ -443,7 +443,7 @@ int pNesX_Filer()
                     }
                     else
                     {
-                        dialog("not a rom file!!");
+                        dialog((char *)"not a rom file!!");
                         wait(1);
                         dialog(NULL);
                         draw_list();

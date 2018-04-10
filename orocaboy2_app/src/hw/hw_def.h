@@ -57,6 +57,7 @@
 #define _USE_HW_SD
 #define _USE_HW_FATFS
 #define _USE_HW_EXTI
+#define _USE_HW_DAC
 #define _USE_HW_CMDIF_EXTI
 
 
@@ -74,12 +75,13 @@
 #define _USE_HW_CMDIF_FATFS
 #define _USE_HW_CMDIF_AUDIO
 #define _USE_HW_CMDIF_ADC
+#define _USE_HW_CMDIF_DAC
 
 
 #define _HW_DEF_LED_CH_MAX                4
 #define _HW_DEF_BUTTON_CH_MAX             5
 #define _HW_DEF_UART_CH_MAX               2
-#define _HW_DEF_TIMER_CH_MAX              3
+#define _HW_DEF_TIMER_CH_MAX              4
 #define _HW_DEF_SW_TIMER_MAX              8
 #define _HW_DEF_ADC_CH_MAX                2
 #define _HW_DEF_I2C_CH_MAX                1

@@ -36,6 +36,7 @@
 #include "sd.h"
 #include "mem.h"
 #include "adc.h"
+#include "dac.h"
 #include "fatfs/fatfs.h"
 #include "cmdif/cmdif.h"
 
