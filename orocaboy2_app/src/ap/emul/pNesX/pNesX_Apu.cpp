@@ -216,12 +216,12 @@ void ApuMute(bool mute)
     if (mute)
     {
         //HAL_TIM_Base_Stop_IT(&TimHandle);
-        timerStop(0);
+        timerStop(_DEF_TIMER4);
     }
     else
     {
         //HAL_TIM_Base_Start_IT(&TimHandle);
-        timerStart(0);
+        timerStart(_DEF_TIMER4);
     }
 #endif
 }

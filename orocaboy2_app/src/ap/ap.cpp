@@ -228,13 +228,9 @@ void gameTest(void)
   uint16_t ball_y = 130;
   while(1)
   {
-    pre_time_tc = millis();
-    while (tsIsDetected() == 2)
+    if (buttonGetReleasedEvent(MODE_BUTTON) == true && buttonGetPressedTime(MODE_BUTTON) < 100)
     {
-      if(millis() - pre_time_tc > 1000)
-      {
-        emuTest();
-      }
+      emuTest();
     }
 
     if (gb.update())
