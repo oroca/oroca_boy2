@@ -228,7 +228,7 @@ void gameTest(void)
   uint16_t ball_y = 130;
   while(1)
   {
-    if (buttonGetReleasedEvent(MODE_BUTTON) == true && buttonGetPressedTime(MODE_BUTTON) < 100)
+    if (buttonGetReleasedEvent(MODE_BUTTON) == true && buttonGetPressedTime(MODE_BUTTON) < 1000)
     {
       emuTest();
     }
