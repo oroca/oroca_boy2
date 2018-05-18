@@ -76,6 +76,8 @@ void bspDeinit(void)
   uint32_t i;
   GPIO_InitTypeDef  GPIO_InitStruct;
 
+  USBD_DeInit(&USBD_Device);
+
   HAL_NVIC_DisableIRQ(OTG_FS_IRQn);
   HAL_NVIC_DisableIRQ(TIM4_IRQn);
   HAL_NVIC_DisableIRQ(TIM2_IRQn);
