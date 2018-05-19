@@ -74,23 +74,16 @@ void apMain(void)
         break;
     }
 
+    bool arduino_run = false;
+    bool pnesx_run = false;
+    bool test_run = false;
+
+
     if (buttonGetReleasedEvent(MODE_BUTTON) == true)
     {
       if (buttonGetPressedTime(MODE_BUTTON) > 100 && buttonGetPressedTime(MODE_BUTTON) < 1000)
       {
-        err = checkGame(GAME_TAG_TYPE_A, _HW_DEF_FLASH_ADDR_GAME_START);
-
-        if(err == OK)
-        {
-          p_tag = (game_tag_type_a_t*) (_HW_DEF_FLASH_ADDR_GAME_START);
-
-          game_addr = *(uint32_t*)(p_tag->address);
-          voidFuncPtr excuteGame = (voidFuncPtr)game_addr;
-
-          drawLogo(2);
-          excuteGame();
-          drawLogo(1);
-        }
+        arduino_run = true;
       }
 
       if (buttonGetPressedTime(MODE_BUTTON) > 2000)
@@ -104,6 +97,18 @@ void apMain(void)
           app_mode = MODE_GAME_LOADER;
         }
       }
+    }
+    if (buttonGetReleasedEvent(_HW_DEF_BUTTON_MENU) == true)
+    {
+      arduino_run = true;
+    }
+    if (buttonGetReleasedEvent(_HW_DEF_BUTTON_HOME) == true)
+    {
+      pnesx_run = true;
+    }
+    if (buttonGetReleasedEvent(_HW_DEF_BUTTON_A) == true)
+    {
+      test_run = true;
     }
 
     if (buttonGetPressed(MODE_BUTTON) && buttonGetPressedTime(MODE_BUTTON) > 2000)
@@ -130,6 +135,32 @@ void apMain(void)
     }
 
     if (tsIsDetected() == 2)
+    {
+      gameTest();
+    }
+
+
+    if (arduino_run == true)
+    {
+      err = checkGame(GAME_TAG_TYPE_A, _HW_DEF_FLASH_ADDR_GAME_START);
+
+      if(err == OK)
+      {
+        p_tag = (game_tag_type_a_t*) (_HW_DEF_FLASH_ADDR_GAME_START);
+
+        game_addr = *(uint32_t*)(p_tag->address);
+        voidFuncPtr excuteGame = (voidFuncPtr)game_addr;
+
+        drawLogo(2);
+        excuteGame();
+        drawLogo(1);
+      }
+    }
+    if (pnesx_run == true)
+    {
+      emuTest();
+    }
+    if (test_run == true)
     {
       gameTest();
     }
@@ -300,8 +331,8 @@ void gameTest(void)
       gb.display.drawCircle(gb.display.width()/2   , gb.display.height()/2, 10);        // A
       gb.display.drawCircle(gb.display.width()/2+20, gb.display.height()/2, 10);        // B
 
-      gb.display.drawCircle(gb.display.width()/2    - 40, gb.display.height()/2, 10);   // MENU
-      gb.display.drawCircle(gb.display.width()/2+20 - 40, gb.display.height()/2, 10);   // HOME
+      gb.display.drawCircle(gb.display.width()/2 - 40, gb.display.height()/2-10, 10);   // MENU
+      gb.display.drawCircle(gb.display.width()/2 - 40, gb.display.height()/2+10, 10);   // HOME
 
       gb.display.drawCircle(gb.display.width()/2/2-5 , gb.display.height()/2, 10);      // left
       gb.display.drawCircle(gb.display.width()/2/2+25, gb.display.height()/2, 10);      // right
@@ -326,12 +357,12 @@ void gameTest(void)
       if (gb.buttons.repeat(Button::menu,  1))
       {
         gb.display.println("Key : MENU");
-        gb.display.fillCircle(gb.display.width()/2    - 40, gb.display.height()/2, 10);
+        gb.display.fillCircle(gb.display.width()/2    - 40, gb.display.height()/2-10, 10);
       }
       if (gb.buttons.repeat(Button::home,  1))
       {
         gb.display.println("Key : HOME");
-        gb.display.fillCircle(gb.display.width()/2+20 - 40, gb.display.height()/2, 10);
+        gb.display.fillCircle(gb.display.width()/2    - 40, gb.display.height()/2+10, 10);
       }
       if (gb.buttons.repeat(Button::left,  1))
       {

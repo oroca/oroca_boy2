@@ -40,10 +40,10 @@ void Buttons::update() {
 
 
 
-	if (adcRead12(_HW_DEF_ADC_Y_AXIS) > 3000) buttonsData |= (1<<(int)Button::down);
-	if (adcRead12(_HW_DEF_ADC_X_AXIS) > 3000) buttonsData |= (1<<(int)Button::left);
-	if (adcRead12(_HW_DEF_ADC_X_AXIS) < 1000) buttonsData |= (1<<(int)Button::right);
-	if (adcRead12(_HW_DEF_ADC_Y_AXIS) < 1000) buttonsData |= (1<<(int)Button::up);
+	if (adcRead12(_HW_DEF_ADC_Y_AXIS) > 3000-250) buttonsData |= (1<<(int)Button::down);
+	if (adcRead12(_HW_DEF_ADC_X_AXIS) > 3000-250) buttonsData |= (1<<(int)Button::left);
+	if (adcRead12(_HW_DEF_ADC_X_AXIS) < 1000+250) buttonsData |= (1<<(int)Button::right);
+	if (adcRead12(_HW_DEF_ADC_Y_AXIS) < 1000+250) buttonsData |= (1<<(int)Button::up);
 
 	if (buttonGetPressed(_HW_DEF_BUTTON_A)) buttonsData |= (1<<(int)Button::a);
 	if (buttonGetPressed(_HW_DEF_BUTTON_B)) buttonsData |= (1<<(int)Button::b);
