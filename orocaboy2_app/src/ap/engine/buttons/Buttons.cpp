@@ -36,7 +36,7 @@ void Buttons::begin() {
  */
 void Buttons::update() {
 	
-	byte buttonsData = 0;
+	uint16_t buttonsData = 0;
 
 
 
@@ -47,12 +47,14 @@ void Buttons::update() {
 
 	if (buttonGetPressed(_HW_DEF_BUTTON_A)) buttonsData |= (1<<(int)Button::a);
 	if (buttonGetPressed(_HW_DEF_BUTTON_B)) buttonsData |= (1<<(int)Button::b);
+  if (buttonGetPressed(_HW_DEF_BUTTON_C)) buttonsData |= (1<<(int)Button::c);
+  if (buttonGetPressed(_HW_DEF_BUTTON_D)) buttonsData |= (1<<(int)Button::d);
 	if (buttonGetPressed(_HW_DEF_BUTTON_MENU)) buttonsData |= (1<<(int)Button::menu);
 	if (buttonGetPressed(_HW_DEF_BUTTON_HOME)) buttonsData |= (1<<(int)Button::home);
 
 
   
-	for (uint8_t thisButton = 0; thisButton < NUM_BTN; thisButton++) {
+	for (uint16_t thisButton = 0; thisButton < NUM_BTN; thisButton++) {
 		//extract the corresponding bit corresponding to the current button
 		bool pressed = (buttonsData & (1 << thisButton)) == (1 << thisButton);
 		

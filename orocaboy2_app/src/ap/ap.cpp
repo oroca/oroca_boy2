@@ -328,8 +328,11 @@ void gameTest(void)
 
 
       gb.display.setColor(BLUE);
-      gb.display.drawCircle(gb.display.width()/2   , gb.display.height()/2, 10);        // A
-      gb.display.drawCircle(gb.display.width()/2+20, gb.display.height()/2, 10);        // B
+      gb.display.drawCircle(gb.display.width()/2   , gb.display.height()/2-10, 10);     // C
+      gb.display.drawCircle(gb.display.width()/2   , gb.display.height()/2+10, 10);     // D
+
+      gb.display.drawCircle(gb.display.width()/2+20, gb.display.height()/2-10, 10);     // A
+      gb.display.drawCircle(gb.display.width()/2+20, gb.display.height()/2+10, 10);     // B
 
       gb.display.drawCircle(gb.display.width()/2 - 40, gb.display.height()/2-10, 10);   // MENU
       gb.display.drawCircle(gb.display.width()/2 - 40, gb.display.height()/2+10, 10);   // HOME
@@ -345,14 +348,24 @@ void gameTest(void)
       if (gb.buttons.repeat(Button::a,     1))
       {
         gb.display.println("Key : A");
-        gb.display.fillCircle(gb.display.width()/2, gb.display.height()/2, 10);
+        gb.display.fillCircle(gb.display.width()/2+20, gb.display.height()/2+10, 10);
         speed = 3;
       }
       if (gb.buttons.repeat(Button::b,     1))
       {
         gb.display.println("Key : B");
-        gb.display.fillCircle(gb.display.width()/2+20, gb.display.height()/2, 10);
+        gb.display.fillCircle(gb.display.width()/2+20, gb.display.height()/2-10, 10);
         speed = 5;
+      }
+      if (gb.buttons.repeat(Button::c,     1))
+      {
+        gb.display.println("Key : C");
+        gb.display.fillCircle(gb.display.width()/2, gb.display.height()/2+10, 10);
+      }
+      if (gb.buttons.repeat(Button::d,     1))
+      {
+        gb.display.println("Key : D");
+        gb.display.fillCircle(gb.display.width()/2, gb.display.height()/2-10, 10);
       }
       if (gb.buttons.repeat(Button::menu,  1))
       {

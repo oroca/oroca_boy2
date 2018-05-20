@@ -60,7 +60,7 @@ void hwInit(void)
   tsInit();
   audioInit(48000);
   adcInit();
-  memInit(0xC0800000, 8*1024*1024);
+  memInit(_HW_DEF_SDRAM_HEAP_START, _HW_DEF_SDRAM_HEAP_LENGTH);
 
   p_hw->init.sdcard = sdInit();
   p_hw->init.fatfs = false;

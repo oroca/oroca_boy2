@@ -171,9 +171,9 @@ static uint32_t cols_addr[4] =
     };
 #endif
 
-volatile int32_t lcd_active_region   = 1;
-volatile int32_t lcd_refershing      = 0;
-volatile bool    lcd_request_draw    = false;
+static volatile int32_t lcd_active_region   = 1;
+static volatile int32_t lcd_refershing      = 0;
+static volatile bool    lcd_request_draw    = false;
 
 
 static void drvLcdHwInit(void);
