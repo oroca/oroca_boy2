@@ -189,7 +189,7 @@ void drawLogo(uint8_t mode)
   y_offset = (480 - LOGO_HEIGHT) / 2;
 
 
-  for (step = 0; step <= 200; step += 8)
+  for (step = 0; step <= 200; step += 8*2)
   {
     while(lcdDrawAvailable() == false);
 
