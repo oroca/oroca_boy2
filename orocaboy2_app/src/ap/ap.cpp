@@ -36,7 +36,7 @@ void emuTest(void);
 extern void swtimerISR(void);
 
 static uint8_t app_mode = MODE_GAME_LOADER;//MODE_CMDIF;
-
+extern const BYTE intro_sound[];
 
 void apInit(void)
 {
@@ -48,6 +48,7 @@ void apInit(void)
   timerStart(_HW_DEF_TIMER_ADC);
 
   gameloaderInit();
+
   drawLogo(0);
 }
 

@@ -77,7 +77,7 @@ err_code_t drvAudioOutInit(uint32_t audio_freq)
   haudio_out_sai.Init.AudioMode = SAI_MODEMASTER_TX;
   haudio_out_sai.Init.NoDivider = SAI_MASTERDIVIDER_ENABLE;
   haudio_out_sai.Init.Protocol = SAI_FREE_PROTOCOL;
-  haudio_out_sai.Init.DataSize = SAI_DATASIZE_16;
+  haudio_out_sai.Init.DataSize = SAI_DATASIZE_8; // SAI_DATASIZE_16
   haudio_out_sai.Init.FirstBit = SAI_FIRSTBIT_MSB;
   haudio_out_sai.Init.ClockStrobing = SAI_CLOCKSTROBING_FALLINGEDGE;
   haudio_out_sai.Init.Synchro = SAI_ASYNCHRONOUS;
@@ -85,16 +85,16 @@ err_code_t drvAudioOutInit(uint32_t audio_freq)
   haudio_out_sai.Init.FIFOThreshold = SAI_FIFOTHRESHOLD_1QF;
   haudio_out_sai.Init.MonoStereoMode = SAI_MONOMODE;
 
-  haudio_out_sai.FrameInit.FrameLength = 64;
-  haudio_out_sai.FrameInit.ActiveFrameLength = 32;
+  haudio_out_sai.FrameInit.FrameLength = 32; // 64
+  haudio_out_sai.FrameInit.ActiveFrameLength = 16; // 32
   haudio_out_sai.FrameInit.FSDefinition = SAI_FS_CHANNEL_IDENTIFICATION;
   haudio_out_sai.FrameInit.FSPolarity = SAI_FS_ACTIVE_LOW;
   haudio_out_sai.FrameInit.FSOffset = SAI_FS_BEFOREFIRSTBIT;
 
-  haudio_out_sai.SlotInit.FirstBitOffset = 0;
-  haudio_out_sai.SlotInit.SlotSize = SAI_SLOTSIZE_DATASIZE;
-  haudio_out_sai.SlotInit.SlotNumber = 4;
-  haudio_out_sai.SlotInit.SlotActive = CODEC_AUDIOFRAME_SLOT_0123;
+  haudio_out_sai.SlotInit.FirstBitOffset = 1;
+  haudio_out_sai.SlotInit.SlotSize = SAI_SLOTSIZE_16B; // SAI_SLOTSIZE_DATASIZE
+  haudio_out_sai.SlotInit.SlotNumber = 2;
+  haudio_out_sai.SlotInit.SlotActive = SAI_SLOTACTIVE_0 | SAI_SLOTACTIVE_1; // CODEC_AUDIOFRAME_SLOT_0123
 
   if (HAL_SAI_Init(&haudio_out_sai) != HAL_OK)
   {
@@ -430,7 +430,7 @@ static void  drvAudioOutClockConfig(SAI_HandleTypeDef *hsai, uint32_t audio_freq
     rcc_ex_clk_init_struct.PeriphClockSelection = RCC_PERIPHCLK_SAI_PLLI2S;
     rcc_ex_clk_init_struct.PLLI2S.PLLI2SN = 344;
     rcc_ex_clk_init_struct.PLLI2S.PLLI2SQ = 7;
-    rcc_ex_clk_init_struct.PLLI2SDivQ = 1;
+    rcc_ex_clk_init_struct.PLLI2SDivQ = 2;
 
     HAL_RCCEx_PeriphCLKConfig(&rcc_ex_clk_init_struct);
   }
@@ -490,7 +490,7 @@ void  HAL_SAI_MspInit(SAI_HandleTypeDef *hsai)
     hdma_sai_tx.Init.MemInc              = DMA_MINC_ENABLE;
     hdma_sai_tx.Init.PeriphDataAlignment = DMA_PDATAALIGN_HALFWORD;
     hdma_sai_tx.Init.MemDataAlignment    = DMA_MDATAALIGN_HALFWORD;
-    hdma_sai_tx.Init.Mode                = DMA_CIRCULAR;
+    hdma_sai_tx.Init.Mode                = DMA_NORMAL; // DMA_CIRCULAR;
     hdma_sai_tx.Init.Priority            = DMA_PRIORITY_HIGH;
     hdma_sai_tx.Init.FIFOMode            = DMA_FIFOMODE_ENABLE;
     hdma_sai_tx.Init.FIFOThreshold       = DMA_FIFO_THRESHOLD_FULL;
