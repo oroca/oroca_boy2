@@ -39,9 +39,9 @@
 /* To have an audio stream in speaker only SAI Slot 1 and Slot 3 must be activated */
 #define CODEC_AUDIOFRAME_SLOT_13                     SAI_SLOTACTIVE_1 | SAI_SLOTACTIVE_3
 
-#define AUDIODATA_SIZE        2   /* 16-bits audio data size */
+#define AUDIODATA_SIZE        1   /* 16-bits audio data size */
 
-#define DEFAULT_OUTPUT_DEVICE   OUTPUT_DEVICE_AUTO
+#define DEFAULT_OUTPUT_DEVICE   OUTPUT_DEVICE_BOTH
 #define DEFAULT_OUTPUT_VOLUME   70
 
 
@@ -49,6 +49,8 @@ AUDIO_DrvTypeDef          *audio_drv;
 SAI_HandleTypeDef         haudio_out_sai;
 I2S_HandleTypeDef         haudio_in_i2s;
 TIM_HandleTypeDef         haudio_tim;
+
+static voidFuncPtr done_handler = NULL;
 
 
 static void drvAudioOutClockConfig(SAI_HandleTypeDef *hsai, uint32_t audio_freq, void *Params);
@@ -72,7 +74,7 @@ err_code_t drvAudioOutInit(uint32_t audio_freq)
 
   drvAudioOutClockConfig(&haudio_out_sai, audio_freq, NULL);
 
-  haudio_out_sai.Init.AudioFrequency = audio_freq;
+  haudio_out_sai.Init.AudioFrequency = audio_freq/1;
   haudio_out_sai.Init.ClockSource = SAI_CLKSOURCE_PLLI2S;
   haudio_out_sai.Init.AudioMode = SAI_MODEMASTER_TX;
   haudio_out_sai.Init.NoDivider = SAI_MASTERDIVIDER_ENABLE;
@@ -91,10 +93,10 @@ err_code_t drvAudioOutInit(uint32_t audio_freq)
   haudio_out_sai.FrameInit.FSPolarity = SAI_FS_ACTIVE_LOW;
   haudio_out_sai.FrameInit.FSOffset = SAI_FS_BEFOREFIRSTBIT;
 
-  haudio_out_sai.SlotInit.FirstBitOffset = 1;
+  haudio_out_sai.SlotInit.FirstBitOffset = 0;
   haudio_out_sai.SlotInit.SlotSize = SAI_SLOTSIZE_16B; // SAI_SLOTSIZE_DATASIZE
   haudio_out_sai.SlotInit.SlotNumber = 2;
-  haudio_out_sai.SlotInit.SlotActive = SAI_SLOTACTIVE_0 | SAI_SLOTACTIVE_1; // CODEC_AUDIOFRAME_SLOT_0123
+  haudio_out_sai.SlotInit.SlotActive = SAI_SLOTACTIVE_0; // CODEC_AUDIOFRAME_SLOT_0123
 
   if (HAL_SAI_Init(&haudio_out_sai) != HAL_OK)
   {
@@ -154,9 +156,9 @@ err_code_t drvAudioOutPlay(uint16_t* p_buf, uint32_t size)
 {
   err_code_t ret = OK;
 
-  if(audio_drv->Play(AUDIO_I2C_ADDRESS, p_buf, size) != 0)
+  //if(audio_drv->Play(AUDIO_I2C_ADDRESS, p_buf, size) != 0)
   {
-    ret = ERR_AUDIO;
+    //ret = ERR_AUDIO;
   }
 
   if(ret == OK)
@@ -286,6 +288,11 @@ void    drvAudioOutSetFrequency(uint32_t audio_freq)
   __HAL_SAI_ENABLE(&haudio_out_sai);
 }
 
+void drvAudioOutSetPlayDoneISR(voidFuncPtr isr_func)
+{
+  done_handler = isr_func;
+}
+
 void    drvAudioOutSetAudioFrameSlot(uint32_t frame_slot)
 {
   __HAL_SAI_DISABLE(&haudio_out_sai);
@@ -372,7 +379,29 @@ void drvAudioOutChangeConfig(uint32_t audio_out_option)
   }
 }
 
+bool drvAudioGetReady(void)
+{
+  if (HAL_SAI_GetState(&haudio_out_sai) == HAL_SAI_STATE_READY)
+  {
+    return true;
+  }
+  else
+  {
+    return false;
+  }
+}
 
+bool drvAudioOutIsPlaying(void)
+{
+  if (drvAudioGetReady() == true)
+  {
+    return false;
+  }
+  else
+  {
+    return true;
+  }
+}
 
 void DMA2_Stream3_IRQHandler(void)
 {
@@ -381,12 +410,15 @@ void DMA2_Stream3_IRQHandler(void)
 
 void HAL_SAI_TxCpltCallback(SAI_HandleTypeDef *hsai)
 {
-	//BSP_AUDIO_OUT_ChangeBuffer((uint16_t*)&haudio.buff[0], AUDIO_OUT_BUFFER_SIZE /2);
+	if (done_handler != NULL)
+	{
+	  done_handler();
+	}
 }
 
 void HAL_SAI_TxHalfCpltCallback(SAI_HandleTypeDef *hsai)
 {
-	//BSP_AUDIO_OUT_ChangeBuffer((uint16_t*)&haudio.buff[AUDIO_OUT_BUFFER_SIZE /2], AUDIO_OUT_BUFFER_SIZE /2);
+
 }
 
 void HAL_SAI_ErrorCallback(SAI_HandleTypeDef *hsai)
@@ -488,8 +520,8 @@ void  HAL_SAI_MspInit(SAI_HandleTypeDef *hsai)
     hdma_sai_tx.Init.Direction           = DMA_MEMORY_TO_PERIPH;
     hdma_sai_tx.Init.PeriphInc           = DMA_PINC_DISABLE;
     hdma_sai_tx.Init.MemInc              = DMA_MINC_ENABLE;
-    hdma_sai_tx.Init.PeriphDataAlignment = DMA_PDATAALIGN_HALFWORD;
-    hdma_sai_tx.Init.MemDataAlignment    = DMA_MDATAALIGN_HALFWORD;
+    hdma_sai_tx.Init.PeriphDataAlignment = DMA_PDATAALIGN_BYTE;
+    hdma_sai_tx.Init.MemDataAlignment    = DMA_PDATAALIGN_BYTE;
     hdma_sai_tx.Init.Mode                = DMA_NORMAL; // DMA_CIRCULAR;
     hdma_sai_tx.Init.Priority            = DMA_PRIORITY_HIGH;
     hdma_sai_tx.Init.FIFOMode            = DMA_FIFOMODE_ENABLE;

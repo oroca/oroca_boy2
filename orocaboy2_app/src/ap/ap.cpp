@@ -11,6 +11,8 @@
 #include "rtos.h"
 #include "image/oroca_logo.h"
 #include "engine/orocaboy.h"
+#include "sound/intro_sound.h"
+
 
 #define MODE_GAME_LOADER  0
 #define MODE_CMDIF        1
@@ -30,13 +32,15 @@ uint8_t ap_flag_game_loader = 0;
 void drawLogo(uint8_t mode);
 void gameTest(void);
 void emuTest(void);
+void playIntroSound(void);
 
 
 //-- External Functions
 extern void swtimerISR(void);
 
 static uint8_t app_mode = MODE_GAME_LOADER;//MODE_CMDIF;
-extern const BYTE intro_sound[];
+
+
 
 void apInit(void)
 {
@@ -48,6 +52,9 @@ void apInit(void)
   timerStart(_HW_DEF_TIMER_ADC);
 
   gameloaderInit();
+
+
+  playIntroSound();
 
   drawLogo(0);
 }
@@ -433,3 +440,58 @@ void emuTest(void)
 
 
 
+static uint8_t *p_play_intro_buf = NULL;
+static uint32_t play_intro_buf_len = 0;
+static uint32_t play_intro_buf_len_sent = 0;
+
+void playDoneISR(void)
+{
+  uint32_t length;
+
+
+  if (play_intro_buf_len_sent < play_intro_buf_len)
+  {
+    audioSetPlayDoneISR(playDoneISR);
+
+    length = constrain(play_intro_buf_len - play_intro_buf_len_sent, 0, 0xFFFF);
+    audioPlay((uint16_t *)&p_play_intro_buf[play_intro_buf_len_sent], length);
+
+    play_intro_buf_len_sent += constrain(length, 0, 0xFFFF);
+  }
+  else
+  {
+    audioSetPlayDoneISR(NULL);
+    memFree(p_play_intro_buf);
+  }
+}
+
+void playIntroSound(void)
+{
+  uint32_t length;
+
+
+  p_play_intro_buf = (uint8_t *)memMalloc(sizeof(intro_sound) * 4);
+
+  if (p_play_intro_buf == NULL)
+  {
+    return;
+  }
+
+  length = 0;
+  for (uint32_t i=0; i<sizeof(intro_sound); i++)
+  {
+    p_play_intro_buf[length++] = intro_sound[i];
+    p_play_intro_buf[length++] = intro_sound[i];
+    p_play_intro_buf[length++] = intro_sound[i];
+    p_play_intro_buf[length++] = intro_sound[i];
+  }
+
+  audioSetPlayDoneISR(playDoneISR);
+  audioSetVol(90);
+
+  play_intro_buf_len = length;
+  play_intro_buf_len_sent = constrain(length, 0, 0xFFFF);
+
+  audioPlay((uint16_t *)p_play_intro_buf, play_intro_buf_len_sent);
+
+}

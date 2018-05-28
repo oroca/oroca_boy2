@@ -176,7 +176,7 @@ uint32_t cs43l22_Init(uint16_t DeviceAddr, uint16_t OutputDevice, uint8_t Volume
   counter += cs43l22_SetVolume(DeviceAddr, Volume);
 
   /* Set the Speaker Mono mode */
-  counter += CODEC_IO_Write(DeviceAddr, CS43L22_REG_PLAYBACK_CTL2, 0x06);
+  counter += CODEC_IO_Write(DeviceAddr, CS43L22_REG_PLAYBACK_CTL2, 0x00);
 
   /* If the Speaker is enabled, set the Mono mode and volume attenuation level */
   if(OutputDevice != OUTPUT_DEVICE_HEADPHONE)
