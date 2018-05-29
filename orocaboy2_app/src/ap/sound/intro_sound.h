@@ -25,7 +25,7 @@
 
 #define NUM_ELEMENTS 36000
 
-int8_t intro_sound[NUM_ELEMENTS] = {
+const int8_t intro_sound[NUM_ELEMENTS] = {
   0,   0,   0,   0,   0,   0,   0,   0, // 0-7
   0,   0,   0,   0,   0,   0,   0,   0, // 8-15
   0,   0,   0,   0,   0,   0,   0,   0, // 16-23

@@ -156,9 +156,9 @@ err_code_t drvAudioOutPlay(uint16_t* p_buf, uint32_t size)
 {
   err_code_t ret = OK;
 
-  //if(audio_drv->Play(AUDIO_I2C_ADDRESS, p_buf, size) != 0)
+  if(audio_drv->Play(AUDIO_I2C_ADDRESS, p_buf, size) != 0)
   {
-    //ret = ERR_AUDIO;
+    ret = ERR_AUDIO;
   }
 
   if(ret == OK)
@@ -238,9 +238,9 @@ err_code_t drvAudioOutStop(void)
   err_code_t ret = OK;
   uint32_t option = CODEC_PDWN_SW;
 
-  if(audio_drv->Stop(AUDIO_I2C_ADDRESS, option) != 0)
+  //if(audio_drv->Stop(AUDIO_I2C_ADDRESS, option) != 0)
   {
-    ret = ERR_AUDIO;
+    //ret = ERR_AUDIO;
   }
 
   if(ret == OK)
@@ -462,7 +462,7 @@ static void  drvAudioOutClockConfig(SAI_HandleTypeDef *hsai, uint32_t audio_freq
     rcc_ex_clk_init_struct.PeriphClockSelection = RCC_PERIPHCLK_SAI_PLLI2S;
     rcc_ex_clk_init_struct.PLLI2S.PLLI2SN = 344;
     rcc_ex_clk_init_struct.PLLI2S.PLLI2SQ = 7;
-    rcc_ex_clk_init_struct.PLLI2SDivQ = 2;
+    rcc_ex_clk_init_struct.PLLI2SDivQ = 1;
 
     HAL_RCCEx_PeriphCLKConfig(&rcc_ex_clk_init_struct);
   }
