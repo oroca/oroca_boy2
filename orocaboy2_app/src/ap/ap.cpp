@@ -30,8 +30,8 @@ uint8_t ap_flag_game_loader = 0;
 
 //-- Internal Functions
 void drawLogo(uint8_t mode);
-void gameTest(void);
-void emuTest(void);
+void runPNESX(void);
+void runGameTest(void);
 void playIntroSound(void);
 
 
@@ -144,7 +144,7 @@ void apMain(void)
 
     if (tsIsDetected() == 2)
     {
-      gameTest();
+      runGameTest();
     }
 
 
@@ -157,20 +157,20 @@ void apMain(void)
         p_tag = (game_tag_type_a_t*) (_HW_DEF_FLASH_ADDR_GAME_START);
 
         game_addr = *(uint32_t*)(p_tag->address);
-        voidFuncPtr excuteGame = (voidFuncPtr)game_addr;
+        voidFuncPtr runArduinoGame = (voidFuncPtr)game_addr;
 
         drawLogo(2);
-        excuteGame();
+        runArduinoGame();
         drawLogo(1);
       }
     }
     if (pnesx_run == true)
     {
-      emuTest();
+      runPNESX();
     }
     if (test_run == true)
     {
-      gameTest();
+      runGameTest();
     }
 
     if (millis()-pre_time >= 500)
@@ -245,7 +245,7 @@ extern uint32_t draw_time;;
 
 
 
-void gameTest(void)
+void runGameTest(void)
 {
   uint32_t pre_time, pre_time_tc;
   uint8_t *p_buf;
@@ -269,7 +269,7 @@ void gameTest(void)
   {
     if (buttonGetReleasedEvent(MODE_BUTTON) == true && buttonGetPressedTime(MODE_BUTTON) < 1000)
     {
-      emuTest();
+      runPNESX();
     }
 
     if (gb.update())
@@ -425,7 +425,7 @@ void gameTest(void)
 
 extern int pnesxMain();
 
-void emuTest(void)
+void runPNESX(void)
 {
   uint32_t pre_time;
 

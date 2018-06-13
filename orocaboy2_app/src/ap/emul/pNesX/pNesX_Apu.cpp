@@ -14,11 +14,14 @@
 // DAC
 //====================
 WORD TrDac, P1Dac, P2Dac, NsDac, MixDac;
-#define DACFreq 12000 // 24000
+#define DACFreq 11025 // 24000
 // Pulse clock(8 steps) = 1789773 / 2 / DACFreq * 1000
-#define PuClock 37287
+//#define PuClock 37287
+#define PuClock 81169
+
 // Triangle clock(32 steps) = 1789773 / DACFreq * 1000
-#define TrClock 74574
+//#define TrClock 74574
+#define TrClock 162338
 
 //====================
 // DAC Timer
@@ -101,6 +104,15 @@ int NsEnvCnt;
 // DMC
 int DmOutLevel;
 
+static uint8_t sound_buf[1024];
+static uint8_t sound_buf_q_mem[256];
+static qbuffer_node_t sound_buf_q;
+static uint16_t sound_vol = 80;
+static volatile bool play_sound_flag = false;
+
+void ApuPlayStart(void);
+
+
 /*-------------------------------------------------------------------*/
 /*  DAC Timer callback                                               */
 /*-------------------------------------------------------------------*/
@@ -172,9 +184,71 @@ void pNesX_ISR(void)
         
     // Output to DAC
     //DAC_Out.write_u16(MixDac);
-    dacWrite(0, MixDac>>8);
+    //dacWrite(0, MixDac>>8);
+
+
+    qbufferWriteByte(&sound_buf_q, (MixDac>>8) - 0x80);
+
+    if (play_sound_flag == false)
+    {
+      ApuPlayStart();
+    }
 }
- 
+
+
+void ApuPlayDoneISR(void)
+{
+  uint32_t length;
+
+
+  length = qbufferAvailable(&sound_buf_q);
+
+  if (length > 0)
+  {
+    audioSetPlayDoneISR(ApuPlayDoneISR);
+    ApuPlayStart();
+  }
+  else
+  {
+    audioSetPlayDoneISR(NULL);
+    play_sound_flag = false;
+  }
+}
+
+void ApuPlayStart(void)
+{
+  uint32_t length;
+
+  length = qbufferAvailable(&sound_buf_q);
+
+  if (length > 0)
+  {
+    uint8_t data;
+    uint32_t index;
+
+    index = 0;
+    for (int i=0; i<length; i++)
+    {
+      qbufferReadByte(&sound_buf_q, &data);
+
+      sound_buf[index++] = data;
+      sound_buf[index++] = data;
+      sound_buf[index++] = data;
+      sound_buf[index++] = data;
+    }
+    audioSetPlayDoneISR(ApuPlayDoneISR);
+    audioPlay((uint16_t *)sound_buf, index);
+    play_sound_flag = true;
+  }
+}
+
+void ApuAdjustVolume(int8_t step)
+{
+  sound_vol += step;
+  sound_vol = constrain(sound_vol, 0, 100);
+
+  audioSetVol(sound_vol);
+}
 /*-------------------------------------------------------------------*/
 /*  Apu Initialize Function                                          */
 /*-------------------------------------------------------------------*/
@@ -184,7 +258,11 @@ void ApuInit()
   timerAttachInterrupt(_DEF_TIMER4, pNesX_ISR);
   timerStart(_DEF_TIMER4);
 
-  dacStart(0);
+  //dacStart(0);
+
+  qbufferCreateMem(&sound_buf_q, sound_buf_q_mem, 256);
+
+  audioSetVol(sound_vol);
 #if 0
 
 
