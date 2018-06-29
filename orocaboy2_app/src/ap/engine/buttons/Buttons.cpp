@@ -36,23 +36,25 @@ void Buttons::begin() {
  */
 void Buttons::update() {
 	
-	byte buttonsData = 0;
+	uint16_t buttonsData = 0;
 
 
 
-	if (adcRead12(_HW_DEF_ADC_Y_AXIS) > 3000) buttonsData |= (1<<(int)Button::down);
-	if (adcRead12(_HW_DEF_ADC_X_AXIS) > 3000) buttonsData |= (1<<(int)Button::left);
-	if (adcRead12(_HW_DEF_ADC_X_AXIS) < 1000) buttonsData |= (1<<(int)Button::right);
-	if (adcRead12(_HW_DEF_ADC_Y_AXIS) < 1000) buttonsData |= (1<<(int)Button::up);
+	if (adcRead12(_HW_DEF_ADC_Y_AXIS) > 3000-250) buttonsData |= (1<<(int)Button::down);
+	if (adcRead12(_HW_DEF_ADC_X_AXIS) > 3000-250) buttonsData |= (1<<(int)Button::left);
+	if (adcRead12(_HW_DEF_ADC_X_AXIS) < 1000+250) buttonsData |= (1<<(int)Button::right);
+	if (adcRead12(_HW_DEF_ADC_Y_AXIS) < 1000+250) buttonsData |= (1<<(int)Button::up);
 
 	if (buttonGetPressed(_HW_DEF_BUTTON_A)) buttonsData |= (1<<(int)Button::a);
 	if (buttonGetPressed(_HW_DEF_BUTTON_B)) buttonsData |= (1<<(int)Button::b);
+  if (buttonGetPressed(_HW_DEF_BUTTON_C)) buttonsData |= (1<<(int)Button::c);
+  if (buttonGetPressed(_HW_DEF_BUTTON_D)) buttonsData |= (1<<(int)Button::d);
 	if (buttonGetPressed(_HW_DEF_BUTTON_MENU)) buttonsData |= (1<<(int)Button::menu);
 	if (buttonGetPressed(_HW_DEF_BUTTON_HOME)) buttonsData |= (1<<(int)Button::home);
 
 
   
-	for (uint8_t thisButton = 0; thisButton < NUM_BTN; thisButton++) {
+	for (uint16_t thisButton = 0; thisButton < NUM_BTN; thisButton++) {
 		//extract the corresponding bit corresponding to the current button
 		bool pressed = (buttonsData & (1 << thisButton)) == (1 << thisButton);
 		

@@ -16,7 +16,7 @@ typedef struct
 
 const drv_gpio_t g_drv_gpio_map_t[] = {
 
-    { GPIOA, GPIO_PIN_4 },
+    { GPIOC, GPIO_PIN_5 },
 
     { NULL, 0 }
 };

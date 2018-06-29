@@ -31,6 +31,8 @@ static uint32_t __heap_limit = 0xC1000000;
 //
 static void *malloc_(size_t size);
 static void free_(void *ptr);
+static void *calloc_(size_t nmemb, size_t size);
+static void *realloc_(void *ptr, size_t size);
 
 
 //-- External Functions
@@ -54,7 +56,15 @@ void memFree(void *ptr)
   free_(ptr);
 }
 
+void *memCalloc(size_t nmemb, size_t size)
+{
+  return calloc_(nmemb, size);
+}
 
+void *memRealloc(void *ptr, size_t size)
+{
+  return realloc_(ptr, size);
+}
 
 #include <unistd.h>
 #include <errno.h>
@@ -185,3 +195,26 @@ static void free_(void *ptr) {
     }
 }
 
+static void *calloc_(size_t nmemb, size_t size) {
+    size_t length = nmemb * size;
+    void *ptr = malloc_(length);
+    if (ptr) {
+        char *dst = ptr;
+        for (size_t i = 0; i < length; *dst = 0, ++dst, ++i);
+    }
+    return ptr;
+}
+
+static void *realloc_(void *ptr, size_t size) {
+    void *newptr = malloc_(size);
+    if (newptr && ptr && ptr >= malloc_base() && ptr <= (void *)sbrk_(0)) {
+        Chunk c = (Chunk) ptr - 1;
+        if (c->data == ptr) {
+            size_t length = c->size > size ? size : c->size;
+            char *dst = newptr, *src = ptr;
+            for (size_t i = 0; i < length; *dst = *src, ++src, ++dst, ++i);
+            free_(ptr);
+        }
+    }
+    return newptr;
+}

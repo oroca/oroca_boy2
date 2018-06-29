@@ -32,9 +32,6 @@
 #define FALSE 0
 #endif
 
-#define LEFT  1
-#define RIGHT 0
-
 
 #define _USE_HW_RTOS
 #define _USE_HW_VCP
@@ -57,6 +54,7 @@
 #define _USE_HW_SD
 #define _USE_HW_FATFS
 #define _USE_HW_EXTI
+#define _USE_HW_DAC
 #define _USE_HW_CMDIF_EXTI
 
 
@@ -74,12 +72,13 @@
 #define _USE_HW_CMDIF_FATFS
 #define _USE_HW_CMDIF_AUDIO
 #define _USE_HW_CMDIF_ADC
+#define _USE_HW_CMDIF_DAC
 
 
 #define _HW_DEF_LED_CH_MAX                4
-#define _HW_DEF_BUTTON_CH_MAX             5
+#define _HW_DEF_BUTTON_CH_MAX             7
 #define _HW_DEF_UART_CH_MAX               2
-#define _HW_DEF_TIMER_CH_MAX              3
+#define _HW_DEF_TIMER_CH_MAX              4
 #define _HW_DEF_SW_TIMER_MAX              8
 #define _HW_DEF_ADC_CH_MAX                2
 #define _HW_DEF_I2C_CH_MAX                1
@@ -101,6 +100,10 @@
 #define _HW_DEF_LCD_ADDR_LAYER1_START         _HW_DEF_SDRAM_ADDR_START
 #define _HW_DEF_LCD_ADDR_LAYER2_START         (_HW_DEF_SDRAM_ADDR_START + (800*480*4))
 
+#define _HW_DEF_SDRAM_HEAP_START              (_HW_DEF_SDRAM_ADDR_START + 4*1024*1024)
+#define _HW_DEF_SDRAM_HEAP_LENGTH             (11*1024*1024)
+
+
 #define _HW_DEF_FLASH_ADDR_GAME_LENGTH        (512*1024)
 #define _HW_DEF_FLASH_ADDR_GAME_START         0x08180000
 #define _HW_DEF_FLASH_ADDR_GAME_END           (_HW_DEF_FLASH_ADDR_GAME_START + _HW_DEF_FLASH_ADDR_GAME_LENGTH)
@@ -117,6 +120,9 @@
 #define _HW_DEF_BUTTON_B                  2
 #define _HW_DEF_BUTTON_MENU               3
 #define _HW_DEF_BUTTON_HOME               4
+#define _HW_DEF_BUTTON_C                  5
+#define _HW_DEF_BUTTON_D                  6
+
 
 #endif
 

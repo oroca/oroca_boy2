@@ -39,9 +39,9 @@
 /* To have an audio stream in speaker only SAI Slot 1 and Slot 3 must be activated */
 #define CODEC_AUDIOFRAME_SLOT_13                     SAI_SLOTACTIVE_1 | SAI_SLOTACTIVE_3
 
-#define AUDIODATA_SIZE        2   /* 16-bits audio data size */
+#define AUDIODATA_SIZE        1   /* 16-bits audio data size */
 
-#define DEFAULT_OUTPUT_DEVICE   OUTPUT_DEVICE_AUTO
+#define DEFAULT_OUTPUT_DEVICE   OUTPUT_DEVICE_BOTH
 #define DEFAULT_OUTPUT_VOLUME   70
 
 
@@ -49,6 +49,8 @@ AUDIO_DrvTypeDef          *audio_drv;
 SAI_HandleTypeDef         haudio_out_sai;
 I2S_HandleTypeDef         haudio_in_i2s;
 TIM_HandleTypeDef         haudio_tim;
+
+static voidFuncPtr done_handler = NULL;
 
 
 static void drvAudioOutClockConfig(SAI_HandleTypeDef *hsai, uint32_t audio_freq, void *Params);
@@ -72,12 +74,12 @@ err_code_t drvAudioOutInit(uint32_t audio_freq)
 
   drvAudioOutClockConfig(&haudio_out_sai, audio_freq, NULL);
 
-  haudio_out_sai.Init.AudioFrequency = audio_freq;
+  haudio_out_sai.Init.AudioFrequency = audio_freq/1;
   haudio_out_sai.Init.ClockSource = SAI_CLKSOURCE_PLLI2S;
   haudio_out_sai.Init.AudioMode = SAI_MODEMASTER_TX;
   haudio_out_sai.Init.NoDivider = SAI_MASTERDIVIDER_ENABLE;
   haudio_out_sai.Init.Protocol = SAI_FREE_PROTOCOL;
-  haudio_out_sai.Init.DataSize = SAI_DATASIZE_16;
+  haudio_out_sai.Init.DataSize = SAI_DATASIZE_8; // SAI_DATASIZE_16
   haudio_out_sai.Init.FirstBit = SAI_FIRSTBIT_MSB;
   haudio_out_sai.Init.ClockStrobing = SAI_CLOCKSTROBING_FALLINGEDGE;
   haudio_out_sai.Init.Synchro = SAI_ASYNCHRONOUS;
@@ -85,16 +87,16 @@ err_code_t drvAudioOutInit(uint32_t audio_freq)
   haudio_out_sai.Init.FIFOThreshold = SAI_FIFOTHRESHOLD_1QF;
   haudio_out_sai.Init.MonoStereoMode = SAI_MONOMODE;
 
-  haudio_out_sai.FrameInit.FrameLength = 64;
-  haudio_out_sai.FrameInit.ActiveFrameLength = 32;
+  haudio_out_sai.FrameInit.FrameLength = 32; // 64
+  haudio_out_sai.FrameInit.ActiveFrameLength = 16; // 32
   haudio_out_sai.FrameInit.FSDefinition = SAI_FS_CHANNEL_IDENTIFICATION;
   haudio_out_sai.FrameInit.FSPolarity = SAI_FS_ACTIVE_LOW;
   haudio_out_sai.FrameInit.FSOffset = SAI_FS_BEFOREFIRSTBIT;
 
   haudio_out_sai.SlotInit.FirstBitOffset = 0;
-  haudio_out_sai.SlotInit.SlotSize = SAI_SLOTSIZE_DATASIZE;
-  haudio_out_sai.SlotInit.SlotNumber = 4;
-  haudio_out_sai.SlotInit.SlotActive = CODEC_AUDIOFRAME_SLOT_0123;
+  haudio_out_sai.SlotInit.SlotSize = SAI_SLOTSIZE_16B; // SAI_SLOTSIZE_DATASIZE
+  haudio_out_sai.SlotInit.SlotNumber = 2;
+  haudio_out_sai.SlotInit.SlotActive = SAI_SLOTACTIVE_0; // CODEC_AUDIOFRAME_SLOT_0123
 
   if (HAL_SAI_Init(&haudio_out_sai) != HAL_OK)
   {
@@ -236,9 +238,9 @@ err_code_t drvAudioOutStop(void)
   err_code_t ret = OK;
   uint32_t option = CODEC_PDWN_SW;
 
-  if(audio_drv->Stop(AUDIO_I2C_ADDRESS, option) != 0)
+  //if(audio_drv->Stop(AUDIO_I2C_ADDRESS, option) != 0)
   {
-    ret = ERR_AUDIO;
+    //ret = ERR_AUDIO;
   }
 
   if(ret == OK)
@@ -284,6 +286,11 @@ void    drvAudioOutSetFrequency(uint32_t audio_freq)
 
   /* Enable SAI peripheral to generate MCLK */
   __HAL_SAI_ENABLE(&haudio_out_sai);
+}
+
+void drvAudioOutSetPlayDoneISR(voidFuncPtr isr_func)
+{
+  done_handler = isr_func;
 }
 
 void    drvAudioOutSetAudioFrameSlot(uint32_t frame_slot)
@@ -372,7 +379,29 @@ void drvAudioOutChangeConfig(uint32_t audio_out_option)
   }
 }
 
+bool drvAudioGetReady(void)
+{
+  if (HAL_SAI_GetState(&haudio_out_sai) == HAL_SAI_STATE_READY)
+  {
+    return true;
+  }
+  else
+  {
+    return false;
+  }
+}
 
+bool drvAudioOutIsPlaying(void)
+{
+  if (drvAudioGetReady() == true)
+  {
+    return false;
+  }
+  else
+  {
+    return true;
+  }
+}
 
 void DMA2_Stream3_IRQHandler(void)
 {
@@ -381,12 +410,15 @@ void DMA2_Stream3_IRQHandler(void)
 
 void HAL_SAI_TxCpltCallback(SAI_HandleTypeDef *hsai)
 {
-	//BSP_AUDIO_OUT_ChangeBuffer((uint16_t*)&haudio.buff[0], AUDIO_OUT_BUFFER_SIZE /2);
+	if (done_handler != NULL)
+	{
+	  done_handler();
+	}
 }
 
 void HAL_SAI_TxHalfCpltCallback(SAI_HandleTypeDef *hsai)
 {
-	//BSP_AUDIO_OUT_ChangeBuffer((uint16_t*)&haudio.buff[AUDIO_OUT_BUFFER_SIZE /2], AUDIO_OUT_BUFFER_SIZE /2);
+
 }
 
 void HAL_SAI_ErrorCallback(SAI_HandleTypeDef *hsai)
@@ -488,9 +520,9 @@ void  HAL_SAI_MspInit(SAI_HandleTypeDef *hsai)
     hdma_sai_tx.Init.Direction           = DMA_MEMORY_TO_PERIPH;
     hdma_sai_tx.Init.PeriphInc           = DMA_PINC_DISABLE;
     hdma_sai_tx.Init.MemInc              = DMA_MINC_ENABLE;
-    hdma_sai_tx.Init.PeriphDataAlignment = DMA_PDATAALIGN_HALFWORD;
-    hdma_sai_tx.Init.MemDataAlignment    = DMA_MDATAALIGN_HALFWORD;
-    hdma_sai_tx.Init.Mode                = DMA_CIRCULAR;
+    hdma_sai_tx.Init.PeriphDataAlignment = DMA_PDATAALIGN_BYTE;
+    hdma_sai_tx.Init.MemDataAlignment    = DMA_PDATAALIGN_BYTE;
+    hdma_sai_tx.Init.Mode                = DMA_NORMAL; // DMA_CIRCULAR;
     hdma_sai_tx.Init.Priority            = DMA_PRIORITY_HIGH;
     hdma_sai_tx.Init.FIFOMode            = DMA_FIFOMODE_ENABLE;
     hdma_sai_tx.Init.FIFOThreshold       = DMA_FIFO_THRESHOLD_FULL;

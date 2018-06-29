@@ -11,6 +11,8 @@
 #include "rtos.h"
 #include "image/oroca_logo.h"
 #include "engine/orocaboy.h"
+#include "sound/intro_sound.h"
+
 
 #define MODE_GAME_LOADER  0
 #define MODE_CMDIF        1
@@ -28,14 +30,16 @@ uint8_t ap_flag_game_loader = 0;
 
 //-- Internal Functions
 void drawLogo(uint8_t mode);
-void gameTest(void);
-void emuTest(void);
+void runPNESX(void);
+void runGameTest(void);
+void playIntroSound(void);
 
 
 //-- External Functions
 extern void swtimerISR(void);
 
 static uint8_t app_mode = MODE_GAME_LOADER;//MODE_CMDIF;
+
 
 
 void apInit(void)
@@ -48,6 +52,10 @@ void apInit(void)
   timerStart(_HW_DEF_TIMER_ADC);
 
   gameloaderInit();
+
+
+  playIntroSound();
+
   drawLogo(0);
 }
 
@@ -74,23 +82,16 @@ void apMain(void)
         break;
     }
 
+    bool arduino_run = false;
+    bool pnesx_run = false;
+    bool test_run = false;
+
+
     if (buttonGetReleasedEvent(MODE_BUTTON) == true)
     {
       if (buttonGetPressedTime(MODE_BUTTON) > 100 && buttonGetPressedTime(MODE_BUTTON) < 1000)
       {
-        err = checkGame(GAME_TAG_TYPE_A, _HW_DEF_FLASH_ADDR_GAME_START);
-
-        if(err == OK)
-        {
-          p_tag = (game_tag_type_a_t*) (_HW_DEF_FLASH_ADDR_GAME_START);
-
-          game_addr = *(uint32_t*)(p_tag->address);
-          voidFuncPtr excuteGame = (voidFuncPtr)game_addr;
-
-          drawLogo(2);
-          excuteGame();
-          drawLogo(1);
-        }
+        arduino_run = true;
       }
 
       if (buttonGetPressedTime(MODE_BUTTON) > 2000)
@@ -104,6 +105,18 @@ void apMain(void)
           app_mode = MODE_GAME_LOADER;
         }
       }
+    }
+    if (buttonGetReleasedEvent(_HW_DEF_BUTTON_MENU) == true)
+    {
+      arduino_run = true;
+    }
+    if (buttonGetReleasedEvent(_HW_DEF_BUTTON_HOME) == true)
+    {
+      pnesx_run = true;
+    }
+    if (buttonGetReleasedEvent(_HW_DEF_BUTTON_A) == true)
+    {
+      test_run = true;
     }
 
     if (buttonGetPressed(MODE_BUTTON) && buttonGetPressedTime(MODE_BUTTON) > 2000)
@@ -131,7 +144,33 @@ void apMain(void)
 
     if (tsIsDetected() == 2)
     {
-      gameTest();
+      runGameTest();
+    }
+
+
+    if (arduino_run == true)
+    {
+      err = checkGame(GAME_TAG_TYPE_A, _HW_DEF_FLASH_ADDR_GAME_START);
+
+      if(err == OK)
+      {
+        p_tag = (game_tag_type_a_t*) (_HW_DEF_FLASH_ADDR_GAME_START);
+
+        game_addr = *(uint32_t*)(p_tag->address);
+        voidFuncPtr runArduinoGame = (voidFuncPtr)game_addr;
+
+        drawLogo(2);
+        runArduinoGame();
+        drawLogo(1);
+      }
+    }
+    if (pnesx_run == true)
+    {
+      runPNESX();
+    }
+    if (test_run == true)
+    {
+      runGameTest();
     }
 
     if (millis()-pre_time >= 500)
@@ -158,7 +197,7 @@ void drawLogo(uint8_t mode)
   y_offset = (480 - LOGO_HEIGHT) / 2;
 
 
-  for (step = 0; step <= 200; step += 8)
+  for (step = 0; step <= 200; step += 8*2)
   {
     while(lcdDrawAvailable() == false);
 
@@ -206,7 +245,7 @@ extern uint32_t draw_time;;
 
 
 
-void gameTest(void)
+void runGameTest(void)
 {
   uint32_t pre_time, pre_time_tc;
   uint8_t *p_buf;
@@ -216,8 +255,6 @@ void gameTest(void)
   gb.begin();
   //gb.tft.setScanline(true);
   gb.display.clear();
-
-
 
   int cnt = 0;
   unsigned long timeBenchmark = 20;
@@ -230,13 +267,9 @@ void gameTest(void)
   uint16_t ball_y = 130;
   while(1)
   {
-    pre_time_tc = millis();
-    while (tsIsDetected() == 2)
+    if (buttonGetReleasedEvent(MODE_BUTTON) == true && buttonGetPressedTime(MODE_BUTTON) < 1000)
     {
-      if(millis() - pre_time_tc > 1000)
-      {
-        emuTest();
-      }
+      runPNESX();
     }
 
     if (gb.update())
@@ -303,11 +336,14 @@ void gameTest(void)
 
 
       gb.display.setColor(BLUE);
-      gb.display.drawCircle(gb.display.width()/2   , gb.display.height()/2, 10);        // A
-      gb.display.drawCircle(gb.display.width()/2+20, gb.display.height()/2, 10);        // B
+      gb.display.drawCircle(gb.display.width()/2   , gb.display.height()/2-10, 10);     // C
+      gb.display.drawCircle(gb.display.width()/2   , gb.display.height()/2+10, 10);     // D
 
-      gb.display.drawCircle(gb.display.width()/2    - 40, gb.display.height()/2, 10);   // MENU
-      gb.display.drawCircle(gb.display.width()/2+20 - 40, gb.display.height()/2, 10);   // HOME
+      gb.display.drawCircle(gb.display.width()/2+20, gb.display.height()/2-10, 10);     // A
+      gb.display.drawCircle(gb.display.width()/2+20, gb.display.height()/2+10, 10);     // B
+
+      gb.display.drawCircle(gb.display.width()/2 - 40, gb.display.height()/2-10, 10);   // MENU
+      gb.display.drawCircle(gb.display.width()/2 - 40, gb.display.height()/2+10, 10);   // HOME
 
       gb.display.drawCircle(gb.display.width()/2/2-5 , gb.display.height()/2, 10);      // left
       gb.display.drawCircle(gb.display.width()/2/2+25, gb.display.height()/2, 10);      // right
@@ -320,24 +356,34 @@ void gameTest(void)
       if (gb.buttons.repeat(Button::a,     1))
       {
         gb.display.println("Key : A");
-        gb.display.fillCircle(gb.display.width()/2, gb.display.height()/2, 10);
+        gb.display.fillCircle(gb.display.width()/2+20, gb.display.height()/2+10, 10);
         speed = 3;
       }
       if (gb.buttons.repeat(Button::b,     1))
       {
         gb.display.println("Key : B");
-        gb.display.fillCircle(gb.display.width()/2+20, gb.display.height()/2, 10);
+        gb.display.fillCircle(gb.display.width()/2+20, gb.display.height()/2-10, 10);
         speed = 5;
+      }
+      if (gb.buttons.repeat(Button::c,     1))
+      {
+        gb.display.println("Key : C");
+        gb.display.fillCircle(gb.display.width()/2, gb.display.height()/2+10, 10);
+      }
+      if (gb.buttons.repeat(Button::d,     1))
+      {
+        gb.display.println("Key : D");
+        gb.display.fillCircle(gb.display.width()/2, gb.display.height()/2-10, 10);
       }
       if (gb.buttons.repeat(Button::menu,  1))
       {
         gb.display.println("Key : MENU");
-        gb.display.fillCircle(gb.display.width()/2    - 40, gb.display.height()/2, 10);
+        gb.display.fillCircle(gb.display.width()/2    - 40, gb.display.height()/2-10, 10);
       }
       if (gb.buttons.repeat(Button::home,  1))
       {
         gb.display.println("Key : HOME");
-        gb.display.fillCircle(gb.display.width()/2+20 - 40, gb.display.height()/2, 10);
+        gb.display.fillCircle(gb.display.width()/2    - 40, gb.display.height()/2+10, 10);
       }
       if (gb.buttons.repeat(Button::left,  1))
       {
@@ -379,7 +425,7 @@ void gameTest(void)
 
 extern int pnesxMain();
 
-void emuTest(void)
+void runPNESX(void)
 {
   uint32_t pre_time;
 
@@ -394,3 +440,58 @@ void emuTest(void)
 
 
 
+static uint8_t *p_play_intro_buf = NULL;
+static uint32_t play_intro_buf_len = 0;
+static uint32_t play_intro_buf_len_sent = 0;
+
+void playDoneISR(void)
+{
+  uint32_t length;
+
+
+  if (play_intro_buf_len_sent < play_intro_buf_len)
+  {
+    audioSetPlayDoneISR(playDoneISR);
+
+    length = constrain(play_intro_buf_len - play_intro_buf_len_sent, 0, 0xFFFF);
+    audioPlay((uint16_t *)&p_play_intro_buf[play_intro_buf_len_sent], length);
+
+    play_intro_buf_len_sent += constrain(length, 0, 0xFFFF);
+  }
+  else
+  {
+    audioSetPlayDoneISR(NULL);
+    memFree(p_play_intro_buf);
+  }
+}
+
+void playIntroSound(void)
+{
+  uint32_t length;
+
+
+  p_play_intro_buf = (uint8_t *)memMalloc(sizeof(intro_sound) * 4);
+
+  if (p_play_intro_buf == NULL)
+  {
+    return;
+  }
+
+  length = 0;
+  for (uint32_t i=0; i<sizeof(intro_sound); i++)
+  {
+    p_play_intro_buf[length++] = intro_sound[i];
+    p_play_intro_buf[length++] = intro_sound[i];
+    p_play_intro_buf[length++] = intro_sound[i];
+    p_play_intro_buf[length++] = intro_sound[i];
+  }
+
+  audioSetPlayDoneISR(playDoneISR);
+  audioSetVol(90);
+
+  play_intro_buf_len = length;
+  play_intro_buf_len_sent = constrain(length, 0, 0xFFFF);
+
+  audioPlay((uint16_t *)p_play_intro_buf, play_intro_buf_len_sent);
+
+}

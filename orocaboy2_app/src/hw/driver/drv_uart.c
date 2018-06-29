@@ -439,21 +439,21 @@ void HAL_UART_MspInit(UART_HandleTypeDef *huart)
 
   if (huart->Instance == USART6)
   {
-    __HAL_RCC_GPIOC_CLK_ENABLE();
+    __HAL_RCC_GPIOG_CLK_ENABLE();
     __HAL_RCC_USART6_CLK_ENABLE();
 
     // TX
-    GPIO_InitStruct.Pin       = GPIO_PIN_6;
+    GPIO_InitStruct.Pin       = GPIO_PIN_14;
     GPIO_InitStruct.Mode      = GPIO_MODE_AF_PP;
     GPIO_InitStruct.Pull      = GPIO_NOPULL;
     GPIO_InitStruct.Speed     = GPIO_SPEED_FAST;
     GPIO_InitStruct.Alternate = GPIO_AF8_USART6;
-    HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
+    HAL_GPIO_Init(GPIOG, &GPIO_InitStruct);
 
     // RX
-    GPIO_InitStruct.Pin       = GPIO_PIN_7;
+    GPIO_InitStruct.Pin       = GPIO_PIN_9;
     GPIO_InitStruct.Alternate = GPIO_AF8_USART6;
-    HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
+    HAL_GPIO_Init(GPIOG, &GPIO_InitStruct);
 
 
 

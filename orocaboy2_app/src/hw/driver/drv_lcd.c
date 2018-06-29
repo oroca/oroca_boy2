@@ -171,9 +171,9 @@ static uint32_t cols_addr[4] =
     };
 #endif
 
-volatile int32_t lcd_active_region   = 1;
-volatile int32_t lcd_refershing      = 0;
-volatile bool    lcd_request_draw    = false;
+static volatile int32_t lcd_active_region   = 1;
+static volatile int32_t lcd_refershing      = 0;
+static volatile bool    lcd_request_draw    = false;
 
 
 static void drvLcdHwInit(void);
@@ -328,8 +328,8 @@ void drvLcdHwInit(void)
   /* LTDC clock frequency = PLLLCDCLK / LTDC_PLLSAI_DIVR_2 = 54.857 MHz / 2 = 27.429 MHz */
   PeriphClkInitStruct.PeriphClockSelection = RCC_PERIPHCLK_LTDC;
   PeriphClkInitStruct.PLLSAI.PLLSAIN = 384;
-  PeriphClkInitStruct.PLLSAI.PLLSAIR = 7;
-  PeriphClkInitStruct.PLLSAIDivR = RCC_PLLSAIDIVR_2;
+  PeriphClkInitStruct.PLLSAI.PLLSAIR = 6; // 7->6
+  PeriphClkInitStruct.PLLSAIDivR = RCC_PLLSAIDIVR_4; // 2->4
   HAL_RCCEx_PeriphCLKConfig(&PeriphClkInitStruct);
 
   /* Base address of DSI Host/Wrapper registers to be set before calling De-Init */

@@ -14,19 +14,22 @@
 // DAC
 //====================
 WORD TrDac, P1Dac, P2Dac, NsDac, MixDac;
-#define DACFreq 24000
+#define DACFreq 11025 // 24000
 // Pulse clock(8 steps) = 1789773 / 2 / DACFreq * 1000
-#define PuClock 37287
+//#define PuClock 37287
+#define PuClock 81169
+
 // Triangle clock(32 steps) = 1789773 / DACFreq * 1000
-#define TrClock 74574
+//#define TrClock 74574
+#define TrClock 162338
 
 //====================
 // DAC Timer
 //====================
-#define TIMx                TIM4
-#define TIMx_CLK_ENABLE     __HAL_RCC_TIM4_CLK_ENABLE
-#define TIMx_IRQn           TIM4_IRQn
-#define TIMx_IRQHandler     TIM4_IRQHandler
+#define TIMx                TIM1
+#define TIMx_CLK_ENABLE     __HAL_RCC_TIM1_CLK_ENABLE
+#define TIMx_IRQn           TIM1_IRQn
+#define TIMx_IRQHandler     TIM1_IRQHandler
 TIM_HandleTypeDef TimHandle;
 
 //====================
@@ -101,6 +104,15 @@ int NsEnvCnt;
 // DMC
 int DmOutLevel;
 
+static uint8_t sound_buf[1024];
+static uint8_t sound_buf_q_mem[256];
+static qbuffer_node_t sound_buf_q;
+static uint16_t sound_vol = 80;
+static volatile bool play_sound_flag = false;
+
+void ApuPlayStart(void);
+
+
 /*-------------------------------------------------------------------*/
 /*  DAC Timer callback                                               */
 /*-------------------------------------------------------------------*/
@@ -127,7 +139,7 @@ WORD Rand32k()
 /*-------------------------------------------------------------------*/
 /*  DAC Timer Interrup                                               */
 /*-------------------------------------------------------------------*/
-void HAL_TIM_PeriodElapsedCallback__(TIM_HandleTypeDef *htim)
+void pNesX_ISR(void)
 {
     // Pulse1
     if (P1Enable && P1LengthCounter > 0 && !P1SwOverflow && P1Timer > 8)
@@ -172,26 +184,104 @@ void HAL_TIM_PeriodElapsedCallback__(TIM_HandleTypeDef *htim)
         
     // Output to DAC
     //DAC_Out.write_u16(MixDac);
+    //dacWrite(0, MixDac>>8);
+
+
+    qbufferWriteByte(&sound_buf_q, (MixDac>>8) - 0x80);
+
+    if (play_sound_flag == false)
+    {
+      ApuPlayStart();
+    }
 }
- 
+
+
+void ApuPlayDoneISR(void)
+{
+  uint32_t length;
+
+
+  length = qbufferAvailable(&sound_buf_q);
+
+  if (length > 0)
+  {
+    audioSetPlayDoneISR(ApuPlayDoneISR);
+    ApuPlayStart();
+  }
+  else
+  {
+    audioSetPlayDoneISR(NULL);
+    play_sound_flag = false;
+  }
+}
+
+void ApuPlayStart(void)
+{
+  uint32_t length;
+
+  length = qbufferAvailable(&sound_buf_q);
+
+  if (length > 0)
+  {
+    uint8_t data;
+    uint32_t index;
+
+    index = 0;
+    for (int i=0; i<length; i++)
+    {
+      qbufferReadByte(&sound_buf_q, &data);
+
+      sound_buf[index++] = data;
+      sound_buf[index++] = data;
+      sound_buf[index++] = data;
+      sound_buf[index++] = data;
+    }
+    audioSetPlayDoneISR(ApuPlayDoneISR);
+    audioPlay((uint16_t *)sound_buf, index);
+    play_sound_flag = true;
+  }
+}
+
+void ApuAdjustVolume(int8_t step)
+{
+  sound_vol += step;
+  sound_vol = constrain(sound_vol, 0, 100);
+
+  audioSetVol(sound_vol);
+}
 /*-------------------------------------------------------------------*/
 /*  Apu Initialize Function                                          */
 /*-------------------------------------------------------------------*/
 void ApuInit()
 {
+  timerSetPeriod(_DEF_TIMER4, 1000000/DACFreq);
+  timerAttachInterrupt(_DEF_TIMER4, pNesX_ISR);
+  timerStart(_DEF_TIMER4);
+
+  //dacStart(0);
+
+  qbufferCreateMem(&sound_buf_q, sound_buf_q_mem, 256);
+
+  audioSetVol(sound_vol);
 #if 0
+
+
+    __HAL_RCC_TIM1_CLK_ENABLE();
+
+    HAL_NVIC_SetPriority(TIM1_UP_TIM10_IRQn, 15, 0);
+    HAL_NVIC_EnableIRQ(TIM1_UP_TIM10_IRQn);
+
     // Setup DAC Timer  
-    TimHandle.Instance = TIMx;   
-    TimHandle.Init.Prescaler = (uint32_t) ((SystemCoreClock / 2) / 240000) - 1; // 240000Hz
+    TimHandle.Instance = TIM1;
+    TimHandle.Init.Prescaler = (uint32_t) ((SystemCoreClock / 1) / 240000) - 1; // 240000Hz
     TimHandle.Init.Period = 10 - 1; // 240000/10=24000Hz 
     TimHandle.Init.ClockDivision = 0;
     TimHandle.Init.CounterMode = TIM_COUNTERMODE_UP;
     
-    if(HAL_TIM_Base_Init(&TimHandle) != HAL_OK)
-        Error_Handler();
+    HAL_TIM_Base_Init(&TimHandle);
+
     
-    if(HAL_TIM_Base_Start_IT(&TimHandle) != HAL_OK)
-        Error_Handler();
+    HAL_TIM_Base_Start_IT(&TimHandle);
 #endif
 }
 
@@ -200,16 +290,16 @@ void ApuInit()
 /*-------------------------------------------------------------------*/
 void ApuMute(bool mute)
 {
-#if 0
+#if 1
     if (mute)
     {
-        if(HAL_TIM_Base_Stop_IT(&TimHandle) != HAL_OK)
-            Error_Handler();
+        //HAL_TIM_Base_Stop_IT(&TimHandle);
+        timerStop(_DEF_TIMER4);
     }
     else
     {
-        if(HAL_TIM_Base_Start_IT(&TimHandle) != HAL_OK)
-            Error_Handler();
+        //HAL_TIM_Base_Start_IT(&TimHandle);
+        timerStart(_DEF_TIMER4);
     }
 #endif
 }

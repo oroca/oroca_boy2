@@ -34,7 +34,7 @@ uint32_t microsGetMicros(void);
 //
 
 
-
+extern const BYTE intro_sound[];
 
 
 void hwInit(void)
@@ -58,9 +58,9 @@ void hwInit(void)
   sdramInit();
   lcdInit();
   tsInit();
-  audioInit(48000);
+  audioInit(SAI_AUDIO_FREQUENCY_44K);
   adcInit();
-  memInit(0xC0800000, 8*1024*1024);
+  memInit(_HW_DEF_SDRAM_HEAP_START, _HW_DEF_SDRAM_HEAP_LENGTH);
 
   p_hw->init.sdcard = sdInit();
   p_hw->init.fatfs = false;
@@ -154,5 +154,4 @@ uint32_t microsGetMicros(void)
 {
   return TimHandle2.Instance->CNT;
 }
-
 

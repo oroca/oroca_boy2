@@ -394,6 +394,8 @@ void pNesX_TransmitLinedata()
 const BYTE UsbPadTable[] = {0x10, 0x90, 0x80, 0xa0, 0x20, 0x60, 0x40, 0x50}; 
 #endif
 
+extern void ApuAdjustVolume(int8_t step);
+
 /*===================================================================*/
 /*                                                                   */
 /*             pNesX_PadState() : Get a joypad state                 */
@@ -491,6 +493,15 @@ void pNesX_PadState( DWORD *pdwPad1, DWORD *pdwPad2, DWORD *pdwSystem )
     if (gb.buttons.repeat(Button::down,  1))
     {
       data |= (1<<5);
+    }
+
+    if (gb.buttons.released(Button::c))
+    {
+      ApuAdjustVolume(-1);
+    }
+    if (gb.buttons.released(Button::d))
+    {
+      ApuAdjustVolume(+1);
     }
 
     *pdwPad1 = data | ( data << 8 );

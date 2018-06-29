@@ -101,6 +101,21 @@ bool drvTimerInit(void)
   drv_timer_tbl[tim_ch].sConfig.Pulse               = 10;
 
 
+  //-- TIM1
+  //
+  tim_ch = _DEF_TIMER4;
+  drv_timer_tbl[tim_ch].hTIM.Instance               = TIM1;
+  drv_timer_tbl[tim_ch].prescaler_value             = (uint32_t)((SystemCoreClock / 2) / 10000  ) - 1; // 0.01Mhz
+  drv_timer_tbl[tim_ch].prescaler_value_high_res    = (uint32_t)((SystemCoreClock / 2) / 1000000) - 1; // 1.00Mhz
+  drv_timer_tbl[tim_ch].prescaler_div               = 100;
+  drv_timer_tbl[tim_ch].hTIM.Init.Period            = 10000 - 1;
+  drv_timer_tbl[tim_ch].hTIM.Init.Prescaler         = drv_timer_tbl[tim_ch].prescaler_value;
+  drv_timer_tbl[tim_ch].hTIM.Init.ClockDivision     = 0;
+  drv_timer_tbl[tim_ch].hTIM.Init.CounterMode       = TIM_COUNTERMODE_UP;
+  drv_timer_tbl[tim_ch].hTIM.Init.RepetitionCounter = 0;
+
+
+
   for( i=0; i<DRV_TIMER_CH_MAX; i++ )
   {
     drv_timer_tbl[i].handler = NULL;
@@ -235,6 +250,11 @@ void TIM3_IRQHandler(void)
   HAL_TIM_IRQHandler(&drv_timer_tbl[_DEF_TIMER3].hTIM);
 }
 
+void TIM1_UP_TIM10_IRQHandler(void)
+{
+  HAL_TIM_IRQHandler(&drv_timer_tbl[_DEF_TIMER4].hTIM);
+}
+
 void HAL_TIM_Base_MspInit(TIM_HandleTypeDef *htim)
 {
   if( htim->Instance == TIM4 )                  // _DEF_TIMER1
@@ -261,6 +281,14 @@ void HAL_TIM_Base_MspInit(TIM_HandleTypeDef *htim)
     HAL_NVIC_EnableIRQ(TIM3_IRQn);
   }
 
+  if( htim->Instance == TIM1 )                  // _DEF_TIMER4
+  {
+    __HAL_RCC_TIM1_CLK_ENABLE();
+
+    HAL_NVIC_SetPriority(TIM1_UP_TIM10_IRQn, 15, 0);
+    HAL_NVIC_EnableIRQ(TIM1_UP_TIM10_IRQn);
+  }
+
   if( htim->Instance == TIM6 )
   {
     __HAL_RCC_TIM6_CLK_ENABLE();
@@ -282,6 +310,11 @@ void HAL_TIM_Base_MspDeInit(TIM_HandleTypeDef *htim)
   if( htim->Instance == TIM3 )
   {
     HAL_NVIC_DisableIRQ(TIM3_IRQn);
+  }
+
+  if( htim->Instance == TIM1 )
+  {
+    HAL_NVIC_DisableIRQ(TIM1_UP_TIM10_IRQn);
   }
 
   if( htim->Instance == TIM6 )

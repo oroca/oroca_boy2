@@ -36,6 +36,8 @@ void       drvAudioOutSetAudioFrameSlot(uint32_t frame_slot);
 void       drvAudioOutChangeBuffer(uint16_t *p_data, uint16_t size);
 void       drvAudioOutChangeConfig(uint32_t audio_out_option);
 
+bool       drvAudioOutIsPlaying(void);
+void       drvAudioOutSetPlayDoneISR(voidFuncPtr isr_func);
 
 
 #ifdef __cplusplus
