@@ -461,7 +461,7 @@ void playDoneISR(void)
   else
   {
     audioSetPlayDoneISR(NULL);
-    memFree(p_play_intro_buf);
+    //memFree(p_play_intro_buf);
   }
 }
 
