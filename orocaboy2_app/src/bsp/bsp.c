@@ -224,3 +224,21 @@ static void SystemClock_Config(void)
     while(1);
   }
 }
+
+
+
+bool threadCreate(void (*TaskFunction_t)( void * ), uint32_t stack_size)
+{
+  bool ret = true;
+
+
+  if (xTaskCreate(TaskFunction_t, NULL, stack_size/4, NULL, -3, NULL) != pdPASS)
+  {
+    ret = false;
+  }
+
+  return ret;
+}
+
+
+
